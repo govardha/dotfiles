@@ -9,11 +9,9 @@ local mouse_bindings = {}
 local config = wezterm.config_builder()
 local launch_menu = {}
 
-
 -- This will hold the configuration.
 -- Basic stuff
 -- https://github.com/wezterm/wezterm/discussions/4728
-
 
 local is_linux = function()
 	return wezterm.target_triple:find("linux") ~= nil
@@ -37,7 +35,7 @@ config.set_environment_variables = {
 }
 
 if wezterm.target_triple == "x86_64-pc-windows-msvc" then
-
+   config.font = wezterm.font('Consolas')
   table.insert(launch_menu, {
 	  label = "Cmd",
    	  args = { "cmd.exe" },
@@ -66,8 +64,18 @@ if wezterm.target_triple == "x86_64-pc-windows-msvc" then
 	})
 	--config.default_prog	= { "cmd.exe ", "/k", "C:\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash" }
     config.default_prog = { "cmd.exe" }
+elseif wezterm.target_triple == "aarch64-apple-darwin" then
+  -- config.font = wezterm.font('Courier New')
+  -- config.font = wezterm.font('Consolas')
+  config.font = wezterm.font('JetBrains Mono')
+  table.insert(launch_menu, {
+	  label = "terminal",
+   	  args = { "wezterm ", "cli spawn --new-window" },
+	})
+  table.insert(launch_menu, {
+	  label = "---",
+	})
 end
-
 
 wezterm.on( "update-right-status", function(window)
     local date = wezterm.strftime("%Y-%m-%d %H:%M:%S   ")
@@ -138,9 +146,6 @@ config.window_background_gradient = {
   -- segment_smoothness = 0.0,
 }
 
-config.font = wezterm.font('Courier New')
-config.font = wezterm.font('JetBrains Mono')
-config.font = wezterm.font('Consolas')
 -- config.font = wezterm.font('Symbols Nerd Font Mono')
 -- config.font = wezterm.font {
 --  family = 'JetBrains Mono'
@@ -181,7 +186,6 @@ config.window_frame = {
   -- border_right_color = 'silver',
   -- border_bottom_color = 'silver',
   -- border_top_color = 'silver',
-
 }
 
 config.window_padding = {
@@ -294,7 +298,7 @@ wezterm.on(
       }
     else 
       return {
-        { Background = { Color = 'green' } },
+        { Background = { Color = 'black' } },
         { Text = '[' .. tab.tab_index + 1 .. '] ' .. title },
       }
     end
