@@ -28,7 +28,7 @@ function M.apply(config)
 
   -- Tmux shit
   config.leader = { key = "b", mods = "CTRL" }
-  require("wez-tmux.plugin").apply_to_config(config, {})
+  require("plugins.wez-tmux.plugin").apply_to_config(config, {})
 end
 
 return M

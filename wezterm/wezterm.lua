@@ -49,6 +49,5 @@ misc.apply(config)
 platform_specific.apply(config)
 
 -- >>> Add this line for debugging <<<
--- wezterm.log_info("Final config.ssh_domains:", config.ssh_domains) -- Pass the table directly
+wezterm.log_info("Final config.ssh_domains:", config.ssh_domains) -- Pass the table directly
 return config
-

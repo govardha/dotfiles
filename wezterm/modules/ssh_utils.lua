@@ -11,7 +11,7 @@ function M.apply(config)
 
   for i, domain in ipairs(config.ssh_domains) do
     if domain.name then
-      if domain.name:match("^SSHMUX:vpn.*") or domain.name:match("^SSHMUX:.*-depot$") then
+      if domain.name:match("^SSHMUX:vpn.*") or domain.name:match("^SSHMUX:.*-depot.*$") then
         wezterm.log_info("Setting remote_wezterm_path for: " .. domain.name .. " to /home/ubuntu/bin/wezterm")
         domain.remote_wezterm_path = "/home/ubuntu/bin/wezterm"
       elseif domain.name:match("^SSHMUX:what.*") then
