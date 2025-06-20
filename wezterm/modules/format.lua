@@ -18,7 +18,7 @@ function M.apply(config)
   -- Register the tab title format handler
   wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
     local title = tab_title(tab)
-    local hostname = " " .. wezterm.hostname() .. " "
+    -- local hostname = " " .. wezterm.hostname() .. " "
     if tab.is_active then
         return {
             { Background = { Color = "purple" } },

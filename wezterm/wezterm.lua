@@ -1,17 +1,17 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
+local mux = wezterm.mux
 local config = wezterm.config_builder()
 local HOME = os.getenv("HOME")
 
 -- In your main wezterm.lua, before requiring any plugins
-wezterm.on("init", function(cmd_args)
-	wezterm.log_info("init hook for package.path setup")
-	package.path = HOME .. "/.config/wezterm/plugins/?.lua;" .. package.path
-	-- Or wherever you place your plugins, e.g.,
-	-- package.path = wezterm.home_dir .. "/.config/wezterm/plugins/?.lua;" .. package.path
-end)
+-- wezterm.on("init", function(cmd_args)
+-- 	wezterm.log_info("init hook for package.path setup")
+-- 	package.path = HOME .. "/.config/wezterm/plugins/?.lua;" .. package.path
+-- 	-- Or wherever you place your plugins, e.g.,
+-- 	-- package.path = wezterm.home_dir .. "/.config/wezterm/plugins/?.lua;" .. package.path
+-- end)
 
--- Load modules
 local function safe_require(module_name)
 	local status, module = pcall(require, module_name)
 	if status then
@@ -25,6 +25,7 @@ local function safe_require(module_name)
 	end
 end
 
+-- Load modules
 local appearance = safe_require("modules.appearance")
 local mouse = safe_require("modules.mouse")
 local format = safe_require("modules.format")
@@ -49,5 +50,11 @@ misc.apply(config)
 platform_specific.apply(config)
 
 -- >>> Add this line for debugging <<<
-wezterm.log_info("Final config.ssh_domains:", config.ssh_domains) -- Pass the table directly
+-- wezterm.log_info("Final config.ssh_domains:", config.ssh_domains) -- Pass the table directly
+
+wezterm.on('gui-startup', function(cmd)
+  local tab, pane, window = mux.spawn_window(cmd or {})
+  window:gui_window():maximize()
+end)
+
 return config

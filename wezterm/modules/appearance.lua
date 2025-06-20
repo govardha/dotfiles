@@ -24,7 +24,7 @@ function M.apply(config)
   config.use_fancy_tab_bar = true
   config.tab_bar_at_bottom = false
   config.tab_max_width = 999
-  config.hide_tab_bar_if_only_one_tab = true
+  config.hide_tab_bar_if_only_one_tab = false
   
   -- Background and transparency
   config.window_background_opacity = 0.95
@@ -52,29 +52,29 @@ function M.apply(config)
   config.default_cursor_style = "BlinkingBar"
   
   -- Window frame configuration
-  config.window_frame = {
-    font = wezterm.font("Roboto"),
-    font_size = 10,
-    border_left_width = "0.5cell",
-    border_right_width = "0.5cell",
-    border_bottom_height = "0.5cell",
-    border_top_height = "0.5cell",
-  }
+  -- config.window_frame = {
+  --   font = wezterm.font("Roboto"),
+  --   font_size = 10,
+  --   border_left_width = "0.5cell",
+  --   border_right_width = "0.5cell",
+  --   border_bottom_height = "0.5cell",
+  --   border_top_height = "0.5cell",
+  -- }
   
   -- Window control icons
-  local window_min = " 󰖰 "
-  local window_max = " 󰖯 "
-  local window_close = " 󰅖 "
+  -- local window_min = " 󰖰 "
+  -- local window_max = " 󰖯 "
+  -- local window_close = " 󰅖 "
   
   -- Tab bar style with window control icons
-  config.tab_bar_style = {
-    window_hide = window_min,
-    window_hide_hover = window_min,
-    window_maximize = window_max,
-    window_maximize_hover = window_max,
-    window_close = window_close,
-    window_close_hover = window_close,
-  }
+  -- config.tab_bar_style = {
+  --   window_hide = window_min,
+  --   window_hide_hover = window_min,
+  --   window_maximize = window_max,
+  --   window_maximize_hover = window_max,
+  --   window_close = window_close,
+  --   window_close_hover = window_close,
+  -- }
 end
 
 return M
