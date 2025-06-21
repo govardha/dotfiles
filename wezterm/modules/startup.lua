@@ -94,16 +94,28 @@ function M.setup_workspaces(env_info)
         local _, first_pane, vpn_window = mux.spawn_window{
             workspace = 'vpns'
         }
-        local _, second_pane, _ = vpn_window:spawn_tab {}
-        local _, third_pane, _ = vpn_window:spawn_tab {}
+        local _, second_pane, _ = vpn_window:spawn_tab {
+            args = { "ssh", "ubuntu@vpn" }
+        }
+        local _, third_pane, _ = vpn_window:spawn_tab {
+            args = { "ssh", "ubuntu@vpn2" }
+        }
+        local _, fourth_pane, _ = vpn_window:spawn_tab {
+            args = { "ssh", "ubuntu@vpn-x86" }
+        }
 
         -- Depot workspace setup with SSH connections
         local _, first_pane, depot_window = mux.spawn_window{
             workspace = 'depot',
-            args = { "ssh", "ubuntu@rinku-depot" }
         }
         local _, second_pane, _ = depot_window:spawn_tab {
             args = { "ssh", "ubuntu@rinku-depot2" }
+        }
+        local _, third_pane, _ = depot_window:spawn_tab {
+            args = { "ssh", "ubuntu@rinku-depot2" }
+        }
+        local _, third_pane, _ = depot_window:spawn_tab {
+            args = { "ssh", "what"}
         }
 
         -- Set active workspace
