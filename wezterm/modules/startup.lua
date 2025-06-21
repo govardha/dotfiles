@@ -1,4 +1,4 @@
-local wezterm = require("wezterm")
+blocal wezterm = require("wezterm")
 local mux = wezterm.mux
 
 local M = {}
@@ -109,7 +109,7 @@ function M.setup_workspaces(env_info)
             workspace = 'depot',
         }
         local _, second_pane, _ = depot_window:spawn_tab {
-            args = { "ssh", "ubuntu@rinku-depot2" }
+            args = { "ssh", "ubuntu@rinku-depot" }
         }
         local _, third_pane, _ = depot_window:spawn_tab {
             args = { "ssh", "ubuntu@rinku-depot2" }
