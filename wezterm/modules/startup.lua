@@ -97,17 +97,17 @@ function M.setup_workspaces(env_info)
         local _, second_pane, _ = vpn_window:spawn_tab {}
         local _, third_pane, _ = vpn_window:spawn_tab {}
 
-        -- Depot workspace setup (no custom args for macOS)
+        -- Depot workspace setup with SSH connections
         local _, first_pane, depot_window = mux.spawn_window{
-            workspace = 'depot'
+            workspace = 'depot',
+            args = { "ssh", "ubuntu@rinku-depot" }
         }
-        local _, second_pane, _ = depot_window:spawn_tab {}
+        local _, second_pane, _ = depot_window:spawn_tab {
+            args = { "ssh", "ubuntu@rinku-depot2" }
+        }
 
         -- Set active workspace
-        mux.set_active_workspace 'vpns'
-        
-        -- Position the VPN window (since it's the active workspace)
-        vpn_window:gui_window():set_position(200, 100)
+        mux.set_active_workspace 'depot'
     else
         wezterm.log_info("Unknown environment - skipping workspace setup")
     end
