@@ -131,6 +131,23 @@ return {
           },
         })
       end,
+      ["basedpyright"] = function()
+    -- configure basedpyright server
+      lspconfig["basedpyright"].setup({
+        capabilities = capabilities,
+        settings = {
+          basedpyright = {
+            -- Enable additional type checking features
+            analysis = {
+              typeCheckingMode = "basic", -- or "strict"
+              autoSearchPaths = true,
+              diagnosticMode = "workspace",
+              useLibraryCodeForTypes = true,
+            },
+          },
+        },
+      })
+    end,
     })
   end,
 }
