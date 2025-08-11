@@ -30,6 +30,7 @@ return {
         "html",
         "css",
         "prisma",
+        "python",
         "markdown",
         "markdown_inline",
         "svelte",
@@ -43,6 +44,7 @@ return {
         "vimdoc",
         "c",
       },
+      auto_install = true,
       incremental_selection = {
         enable = true,
         keymaps = {

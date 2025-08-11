@@ -32,7 +32,7 @@ opt.signcolumn = "yes" -- show sign column so that text doesn't shift
 opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line or insert mode start position
 
 -- clipboard
-opt.clipboard:append("unnamedplus") -- use system clipboard as default register
+opt.clipboard = "unnamedplus" -- use system clipboard as default register
 
 -- split windows
 opt.splitright = true -- split vertical window to the right
@@ -40,3 +40,6 @@ opt.splitbelow = true -- split horizontal window to the bottom
 
 -- turn off swapfile
 opt.swapfile = false
+opt.scrolloff = 999
+opt.virtualedit = "block"
+vim.g.clipboard = "osc52" -- need for weztermm cuopy/pasta
