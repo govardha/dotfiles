@@ -42,4 +42,25 @@ opt.splitbelow = true -- split horizontal window to the bottom
 opt.swapfile = false
 opt.scrolloff = 999
 opt.virtualedit = "block"
-vim.g.clipboard = "osc52" -- need for weztermm cuopy/pasta
+-- vim.g.clipboard = "osc52" -- need for weztermm cuopy/pasta
+
+-- -- Auto-save on text change, focus lost, and buffer switch
+local auto_save_group = vim.api.nvim_create_augroup("AutoSave", { clear = true })
+
+vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+  group = auto_save_group,
+  callback = function()
+    if vim.bo.modified and vim.bo.buftype == "" and vim.fn.expand("%") ~= "" then
+      vim.cmd("silent! write")
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
+  group = auto_save_group,
+  callback = function()
+    if vim.bo.modified and vim.bo.buftype == "" and vim.fn.expand("%") ~= "" then
+      vim.cmd("silent! wall") -- Save all modified buffers
+    end
+  end,
+})
