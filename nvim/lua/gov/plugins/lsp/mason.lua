@@ -30,7 +30,6 @@ return {
       ensure_installed = {
         "basedpyright",
         "bashls",
-        "awk_ls",
         "ansiblels",
         "jsonls",
         "yamlls",
