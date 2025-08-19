@@ -21,11 +21,11 @@ end
 local appearance = safe_require("modules.appearance")
 local mouse = safe_require("modules.mouse")
 local format = safe_require("modules.format")
-local ssh_utils = safe_require("modules.ssh_utils")
+-- local ssh_utils = safe_require("modules.ssh_utils")
 local keybindings = safe_require("modules.keybindings")
 local misc = safe_require("modules.misc")
 local platform_specific = safe_require("modules.platform_specific")
-local startup = safe_require("modules.startup")
+-- local startup = safe_require("modules.startup")
 
 -- IMPORTANT: Populate ssh_domains *before* applying ssh_path_config
 -- If you are not explicitly setting config.ssh_domains, wezterm.default_ssh_domains()
@@ -38,10 +38,10 @@ appearance.apply(config)
 mouse.apply(config)
 format.apply(config)
 keybindings.apply(config)
-ssh_utils.apply(config)
+-- ssh_utils.apply(config)
 misc.apply(config)
 platform_specific.apply(config)
-startup.apply(config)
+-- startup.apply(config)
 
 -- >>> Add this line for debugging <<<
 -- wezterm.log_info("Final config.ssh_domains:", config.ssh_domains) -- Pass the table directly
