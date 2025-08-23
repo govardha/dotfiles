@@ -1,4 +1,4 @@
--- ~/.config/wezterm/modules/misc.lua
+--lua print(vim.lsp.buf_get_clients()) ~/.config/wezterm/modules/misc.lua
 local wezterm = require('wezterm')
 
 local M = {}
