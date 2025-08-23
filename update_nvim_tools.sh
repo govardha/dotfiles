@@ -14,9 +14,10 @@ BACKUP_DIR="$HOME/.local/share/nvim-tools-backup-$(date +%Y%m%d-%H%M%S)"
 DEBUG_MODE=${DEBUG_MODE:-false}
 
 # Tool configurations - easily add/remove tools here
+# Note: The 'basedpyright' tool is listed twice in the original script.
+# This has been corrected to a single entry.
 declare -A NPM_TOOLS=(
     ["basedpyright"]="basedpyright-langserver"
-    ["basedpyright"]="basedpyright"
     ["bash-language-server"]="bash-language-server"
     ["ansible-language-server"]=""
     ["yaml-language-server"]="yaml-language-server"
@@ -86,7 +87,7 @@ command_exists() {
 backup_current_installation() {
     if [[ -d "$INSTALL_DIR" ]]; then
         log_step "Backing up current installation to $BACKUP_DIR"
-        cp -r "$INSTALL_DIR" "$BACKUP_DIR"
+        cp -r "$INSTALL_DIR" "$BACKUP_DIR" || { log_error "Failed to create backup"; return 1; }
         log_info "✓ Backup created at $BACKUP_DIR"
     else
         log_warn "No existing installation found to backup"
@@ -122,7 +123,22 @@ get_latest_release_url() {
     local pattern="$2"
     
     local api_url="https://api.github.com/repos/$repo/releases/latest"
-    local download_url=$(curl -s "$api_url" | grep -o "https://github.com/$repo/releases/download/[^\"]*$pattern[^\"]*" | head -1)
+    # Fallback to tags if no releases are found (e.g. for actionlint)
+    local fallback_api_url="https://api.github.com/repos/$repo/tags"
+    local download_url
+    
+    # Try releases first
+    download_url=$(curl -s "$api_url" | grep -o "https://github.com/$repo/releases/download/[^\"]*$pattern[^\"]*" | head -1)
+    
+    # If not found, try tags (e.g. for actionlint)
+    if [[ -z "$download_url" ]]; then
+        log_debug "No release found, trying tags..."
+        local latest_tag=$(curl -s "$fallback_api_url" | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
+        if [[ -n "$latest_tag" ]]; then
+            download_url="https://github.com/$repo/releases/download/$latest_tag/$pattern"
+            log_debug "Found tag: $latest_tag, generated URL: $download_url"
+        fi
+    fi
     
     if [[ -n "$download_url" ]]; then
         echo "$download_url"
@@ -144,38 +160,63 @@ update_npm_tools() {
     for tool in "${!NPM_TOOLS[@]}"; do
         local symlink_name="${NPM_TOOLS[$tool]}"
         log_info "Updating $tool..."
-        NPM_CONFIG_PREFIX="$NPM_DIR" npm install -g "$tool@latest" || log_warn "Failed to update $tool"
-        
-        # Create symlink if specified
-        if [[ -n "$symlink_name" ]]; then
-            # Make sure the target exists before creating symlink
-            if [[ -f "$NPM_DIR/bin/$symlink_name" ]]; then
-                # Use relative path for symlink to avoid hardcoded paths
-                # Change to BIN_DIR to ensure relative path works correctly
-                (cd "$BIN_DIR" && ln -sf "../npm/bin/$symlink_name" "$symlink_name") 2>/dev/null || log_warn "Failed to create symlink for $symlink_name"
-                log_debug "Created symlink: $BIN_DIR/$symlink_name -> ../npm/bin/$symlink_name"
-            else
-                log_warn "Target $NPM_DIR/bin/$symlink_name does not exist, skipping symlink creation"
+        if NPM_CONFIG_PREFIX="$NPM_DIR" npm install -g "$tool@latest"; then
+            log_info "✓ Successfully installed $tool"
+            
+            # Create symlink if specified
+            if [[ -n "$symlink_name" ]]; then
+                if [[ -f "$NPM_DIR/bin/$symlink_name" ]]; then
+                    (cd "$BIN_DIR" && ln -sf "../npm/bin/$symlink_name" "$symlink_name") || log_warn "Failed to create symlink for $symlink_name"
+                    log_debug "Created symlink: $BIN_DIR/$symlink_name -> ../npm/bin/$symlink_name"
+                else
+                    log_warn "Target $NPM_DIR/bin/$symlink_name does not exist, skipping symlink creation"
+                fi
             fi
+        else
+            log_error "Failed to update $tool"
+            return 1
         fi
     done
 }
 
+# Function to install/update Python tools
 # Function to install/update Python tools
 update_python_tools() {
     if ! command_exists pip; then
         log_warn "pip not found. Skipping Python tools."
         return 0
     fi
-    
+
     log_step "Updating Python tools..."
-    
+
+    # Create a virtual environment specifically for the Python tools if it doesn't exist
+    local venv_dir="$INSTALL_DIR/py-venv"
+    if [[ ! -d "$venv_dir" ]]; then
+        log_info "Creating virtual environment at $venv_dir..."
+        python3 -m venv "$venv_dir" || { log_error "Failed to create Python virtual environment"; return 1; }
+    fi
+
+    # Activate the virtual environment
+    source "$venv_dir/bin/activate"
+
+    # Now install/upgrade tools within the virtual environment
     for tool in "${PYTHON_TOOLS[@]}"; do
         log_info "Updating $tool..."
-        pip install --user --upgrade "$tool" || log_warn "Failed to update $tool"
-    done
-}
+        pip install --upgrade "$tool" || { log_error "Failed to update $tool"; return 1; }
+        log_info "✓ Successfully updated $tool"
 
+        # Create a symlink to the binary in the main bin directory
+        local venv_bin="$venv_dir/bin"
+        if [[ -f "$venv_bin/$tool" ]]; then
+            (cd "$BIN_DIR" && ln -sf "$(realpath --relative-to="$BIN_DIR" "$venv_bin/$tool")" "$tool") 2>/dev/null || log_warn "Failed to create symlink for $tool"
+        fi
+    done
+
+    # Deactivate the virtual environment
+    deactivate
+
+    return 0
+}
 # Function to install/update Go tools
 update_go_tools() {
     if ! command_exists go; then
@@ -185,7 +226,6 @@ update_go_tools() {
     
     log_step "Updating Go tools..."
     
-    # Check Go version
     local go_version=$(go version | grep -o 'go[0-9]\+\.[0-9]\+' | head -1)
     log_info "Go version: $go_version"
     
@@ -193,45 +233,17 @@ update_go_tools() {
         local go_pkg="${GO_TOOLS[$tool_name]}"
         log_info "Installing $tool_name from $go_pkg..."
         
-        # Try to install with detailed error reporting
+        # Use GOBIN to ensure installation to the correct directory
         if GOBIN="$BIN_DIR" go install "$go_pkg" 2>&1; then
-            log_info "✓ Successfully installed $tool_name"
-            
-            # Verify the binary exists
             if [[ -f "$BIN_DIR/$tool_name" ]]; then
-                log_info "✓ Binary confirmed at $BIN_DIR/$tool_name"
+                log_info "✓ Successfully installed $tool_name to $BIN_DIR"
             else
                 log_warn "✗ Binary not found at expected location $BIN_DIR/$tool_name"
-                
-                # Check if it ended up in default GOPATH/bin
-                local gopath_bin="${GOPATH:-$HOME/go}/bin"
-                if [[ -f "$gopath_bin/$tool_name" ]]; then
-                    log_info "Found $tool_name in $gopath_bin, creating relative symlink..."
-                    # Create relative symlink by changing to BIN_DIR first
-                    local rel_gopath=$(realpath --relative-to="$BIN_DIR" "$gopath_bin" 2>/dev/null || echo "$gopath_bin")
-                    (cd "$BIN_DIR" && ln -sf "$rel_gopath/$tool_name" "$tool_name")
-                else
-                    log_warn "Could not locate $tool_name binary anywhere"
-                fi
+                return 1 # Fail fast if the binary isn't where it should be
             fi
         else
             log_error "Failed to install $tool_name"
-            log_info "Trying alternative installation method..."
-            
-            # Fallback: try without GOBIN, then symlink
-            if go install "$go_pkg" 2>&1; then
-                local gopath_bin="${GOPATH:-$HOME/go}/bin"
-                if [[ -f "$gopath_bin/$tool_name" ]]; then
-                    log_info "Installed to $gopath_bin, creating relative symlink..."
-                    # Create relative symlink by changing to BIN_DIR first
-                    local rel_gopath=$(realpath --relative-to="$BIN_DIR" "$gopath_bin" 2>/dev/null || echo "$gopath_bin")
-                    (cd "$BIN_DIR" && ln -sf "$rel_gopath/$tool_name" "$tool_name")
-                else
-                    log_warn "Failed to install $tool_name with fallback method"
-                fi
-            else
-                log_warn "All installation methods failed for $tool_name"
-            fi
+            return 1
         fi
     done
 }
@@ -239,44 +251,45 @@ update_go_tools() {
 # Function to get binary pattern for different tools
 get_binary_pattern() {
     local tool="$1"
-    local repo="$2"
+    local os="$SYSTEM_OS"
+    local arch="$SYSTEM_ARCH"
     
     case "$tool" in
         "lua-language-server")
-            echo "$SYSTEM_OS-$SYSTEM_ARCH.tar.gz"
+            echo "lua-language-server-$os-$arch.tar.gz"
             ;;
         "shellcheck")
-            local shellcheck_arch="$SYSTEM_ARCH"
-            case "$SYSTEM_ARCH" in
+            local shellcheck_arch="$arch"
+            case "$arch" in
                 x64) shellcheck_arch="x86_64" ;;
                 arm64) shellcheck_arch="aarch64" ;;
             esac
-            echo "$SYSTEM_OS.$shellcheck_arch.tar.xz"
+            echo "shellcheck-v[0-9.]*.$os.$shellcheck_arch.tar.xz"
             ;;
         "stylua")
-            if [[ "$SYSTEM_OS" == "linux" ]]; then
-                echo "linux.zip"
-            elif [[ "$SYSTEM_OS" == "darwin" ]]; then
-                echo "macos.zip"
-            fi
+            case "$os" in
+                linux) echo "stylua-$arch-unknown-linux-gnu.zip" ;;
+                darwin) echo "stylua-$arch-apple-darwin.zip" ;;
+                *) echo "" ;;
+            esac
             ;;
         "hadolint")
-            if [[ "$SYSTEM_OS" == "linux" ]]; then
-                echo "Linux-$SYSTEM_ARCH"
-            elif [[ "$SYSTEM_OS" == "darwin" ]]; then
-                echo "Darwin-$SYSTEM_ARCH"
-            fi
+            case "$os" in
+                linux) echo "hadolint-Linux-$arch" ;;
+                darwin) echo "hadolint-Darwin-$arch" ;;
+                *) echo "" ;;
+            esac
             ;;
         "actionlint")
-            if [[ "$SYSTEM_OS" == "linux" ]]; then
-                echo "linux_amd64.tar.gz"
-            elif [[ "$SYSTEM_OS" == "darwin" ]]; then
-                echo "darwin_amd64.tar.gz"
-            fi
+            case "$os" in
+                linux) echo "actionlint_linux_$arch.tar.gz" ;;
+                darwin) echo "actionlint_darwin_$arch.tar.gz" ;;
+                *) echo "" ;;
+            esac
             ;;
         *)
-            # Default pattern - you can customize this
-            echo "$SYSTEM_OS-$SYSTEM_ARCH"
+            # Default pattern
+            echo "$os-$arch"
             ;;
     esac
 }
@@ -286,57 +299,58 @@ update_binary_releases() {
     log_step "Updating binary releases..."
     
     local temp_dir="/tmp/nvim-tools-update-$(date +%s)"
-    mkdir -p "$temp_dir"
+    mkdir -p "$temp_dir" || { log_error "Failed to create temp directory"; return 1; }
     
     # Function to download and install a binary
     install_binary() {
         local name="$1"
         local repo="$2"
-        local binary_name="${3:-$name}"
         
         log_info "Updating $name..."
         cd "$temp_dir"
         
-        # Get the appropriate pattern for this tool
-        local pattern=$(get_binary_pattern "$name" "$repo")
+        local pattern=$(get_binary_pattern "$name")
         if [[ -z "$pattern" ]]; then
             log_warn "No pattern defined for $name on $SYSTEM_OS-$SYSTEM_ARCH, skipping..."
-            return 1
+            return 0
         fi
         
-        # Try to get latest release
         local url
-        if url=$(get_latest_release_url "$repo" "$pattern"); then
-            log_info "Found latest release: $url"
-        else
+        if ! url=$(get_latest_release_url "$repo" "$pattern"); then
             log_warn "Could not find latest release for $name, skipping..."
+            return 0
+        fi
+        
+        log_info "Found latest release: $url"
+        
+        local filename="${url##*/}"
+        if ! curl -L -f "$url" -o "$filename"; then
+            log_warn "Failed to download $name from $url"
             return 1
         fi
         
-        # Download and extract
-        if curl -L -f "$url" -o "${name}_download"; then
-            local file_type=$(file "${name}_download" 2>/dev/null || echo "unknown")
-            
-            if [[ "$file_type" == *"gzip compressed"* ]]; then
-                tar -xzf "${name}_download" || return 1
-            elif [[ "$file_type" == *"XZ compressed"* ]]; then
-                tar -xJf "${name}_download" || return 1
-            elif [[ "$file_type" == *"Zip archive"* ]]; then
-                unzip -q "${name}_download" || return 1
-            else
-                # Direct binary
-                cp "${name}_download" "$BIN_DIR/$name"
-                chmod +x "$BIN_DIR/$name"
-                rm -f "${name}_download"
-                return 0
-            fi
-            
-            # Find and install the binary
+        local binary_path=""
+        local extract_dir="$temp_dir/extract"
+        mkdir -p "$extract_dir"
+        
+        if [[ "$filename" == *".tar.gz" ]]; then
+            tar -xzf "$filename" -C "$extract_dir" || return 1
+        elif [[ "$filename" == *".tar.xz" ]]; then
+            tar -xJf "$filename" -C "$extract_dir" || return 1
+        elif [[ "$filename" == *".zip" ]]; then
+            unzip -q "$filename" -d "$extract_dir" || return 1
+        else
+            # Direct binary file
+            binary_path="$temp_dir/$filename"
+            mv "$filename" "$binary_path"
+        fi
+        
+        if [[ -z "$binary_path" ]]; then
+            # Find the binary in the extracted directory
             if [[ "$name" == "lua-language-server" ]]; then
                 # Special handling for lua-language-server
                 rm -rf "$INSTALL_DIR/lua-language-server"
-                mkdir -p "$INSTALL_DIR/lua-language-server"
-                cp -r * "$INSTALL_DIR/lua-language-server/"
+                cp -r "$extract_dir" "$INSTALL_DIR/lua-language-server"
                 
                 cat > "$BIN_DIR/lua-language-server" << EOF
 #!/bin/bash
@@ -345,43 +359,37 @@ exec ./bin/lua-language-server "\$@"
 EOF
                 chmod +x "$BIN_DIR/lua-language-server"
             else
-                # Regular binary installation
-                local found_binary=$(find . -name "$binary_name" -type f -executable | head -1)
+                local found_binary=$(find "$extract_dir" -name "$name*" -type f -executable | head -1)
                 if [[ -n "$found_binary" ]]; then
-                    cp "$found_binary" "$BIN_DIR/$name"
-                    chmod +x "$BIN_DIR/$name"
+                    binary_path="$found_binary"
                 else
-                    log_warn "Binary '$binary_name' not found in $name archive"
+                    log_warn "Binary '$name' not found in archive"
                     return 1
                 fi
+                cp "$binary_path" "$BIN_DIR/$name"
+                chmod +x "$BIN_DIR/$name"
             fi
-            
-            # Cleanup
-            rm -rf ./*
-            log_info "✓ $name updated successfully"
-        else
-            log_warn "Failed to download $name"
-            return 1
         fi
+        
+        log_info "✓ $name updated successfully"
+        rm -rf "$extract_dir" "$filename"
     }
     
-    # Update each binary tool
+    local success=true
     for tool_name in "${!BINARY_TOOLS[@]}"; do
         local repo="${BINARY_TOOLS[$tool_name]}"
-        install_binary "$tool_name" "$repo" "$tool_name"
+        install_binary "$tool_name" "$repo" || success=false
     done
     
     rm -rf "$temp_dir"
+    $success
 }
 
 # Function to verify installation
 verify_installation() {
     log_step "Verifying installation..."
     
-    # Collect all tools that should be available
     local tools=()
-    
-    # Add npm tools that have symlinks
     for tool in "${!NPM_TOOLS[@]}"; do
         local symlink_name="${NPM_TOOLS[$tool]}"
         if [[ -n "$symlink_name" ]]; then
@@ -389,44 +397,30 @@ verify_installation() {
         fi
     done
     
-    # Add Python tools
     tools+=("${PYTHON_TOOLS[@]}")
-    
-    # Add Go tools
     for tool in "${!GO_TOOLS[@]}"; do
         tools+=("$tool")
     done
     
-    # Add binary tools
     for tool in "${!BINARY_TOOLS[@]}"; do
         tools+=("$tool")
     done
     
     local failed_tools=()
-    local success_count=0
-    
     for tool in "${tools[@]}"; do
         if command_exists "$tool"; then
             log_info "✓ $tool"
-            ((success_count++))
         else
             log_warn "✗ $tool not found"
             failed_tools+=("$tool")
         fi
     done
     
-    local total_tools=${#tools[@]}
-    log_info "Verification complete: $success_count/$total_tools tools working"
-    
     if [[ ${#failed_tools[@]} -eq 0 ]]; then
         log_info "✓ All tools verified successfully!"
         return 0
-    elif [[ $success_count -gt $((total_tools / 2)) ]]; then
-        log_warn "Most tools are working. Failed tools: ${failed_tools[*]}"
-        log_info "You can continue using the working tools or re-run the script to try fixing the failed ones."
-        return 0  # Don't fail if more than half the tools work
     else
-        log_error "Too many tools failed. Failed tools: ${failed_tools[*]}"
+        log_error "The following tools failed verification: ${failed_tools[*]}"
         return 1
     fi
 }
@@ -435,20 +429,24 @@ verify_installation() {
 test_tools() {
     log_step "Testing tools..."
     
-    # Test each tool briefly
-    lua-language-server --version >/dev/null 2>&1 && log_info "✓ lua-language-server working" || log_warn "✗ lua-language-server test failed"
+    local test_passed=true
+    
+    command_exists lua-language-server && lua-language-server --version >/dev/null 2>&1 && log_info "✓ lua-language-server working" || { log_warn "✗ lua-language-server test failed"; test_passed=false; }
     
     if command_exists basedpyright-langserver; then
-        echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"capabilities":{}}}' | timeout 5 basedpyright-langserver --stdio >/dev/null 2>&1 && log_info "✓ basedpyright-langserver working" || log_warn "✗ basedpyright-langserver test failed"
+        echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"capabilities":{}}}' | timeout 5 basedpyright-langserver --stdio >/dev/null 2>&1 && log_info "✓ basedpyright-langserver working" || { log_warn "✗ basedpyright-langserver test failed"; test_passed=false; }
     fi
     
-    ruff --version >/dev/null 2>&1 && log_info "✓ ruff working" || log_warn "✗ ruff test failed"
-    black --version >/dev/null 2>&1 && log_info "✓ black working" || log_warn "✗ black test failed"
-    shellcheck --version >/dev/null 2>&1 && log_info "✓ shellcheck working" || log_warn "✗ shellcheck test failed"
-    stylua --version >/dev/null 2>&1 && log_info "✓ stylua working" || log_warn "✗ stylua test failed"
+    command_exists ruff && ruff --version >/dev/null 2>&1 && log_info "✓ ruff working" || { log_warn "✗ ruff test failed"; test_passed=false; }
+    command_exists black && black --version >/dev/null 2>&1 && log_info "✓ black working" || { log_warn "✗ black test failed"; test_passed=false; }
+    command_exists shellcheck && shellcheck --version >/dev/null 2>&1 && log_info "✓ shellcheck working" || { log_warn "✗ shellcheck test failed"; test_passed=false; }
+    command_exists stylua && stylua --version >/dev/null 2>&1 && log_info "✓ stylua working" || { log_warn "✗ stylua test failed"; test_passed=false; }
+    command_exists shfmt && shfmt --version >/dev/null 2>&1 && log_info "✓ shfmt working" || { log_warn "✗ shfmt test failed"; test_passed=false; }
     
-    if command_exists shfmt; then
-        shfmt --version >/dev/null 2>&1 && log_info "✓ shfmt working" || log_warn "✗ shfmt test failed"
+    if $test_passed; then
+        log_info "✓ All configured tools passed basic tests."
+    else
+        log_warn "Some tools failed basic tests."
     fi
 }
 
@@ -557,7 +555,6 @@ main() {
     log_info "Starting Neovim tools update..."
     log_info "This will update all your development tools to the latest versions"
     
-    # Confirm before proceeding
     read -p "Continue with update? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -565,70 +562,46 @@ main() {
         exit 0
     fi
     
-    # Create directories
-    mkdir -p "$BIN_DIR"
-    mkdir -p "$NPM_DIR"
+    mkdir -p "$BIN_DIR" "$NPM_DIR"
     
-    # Detect system
     detect_system
     
-    # Backup current installation
     backup_current_installation
     
-    # Update tools (continue even if some fail)
-    local npm_success=true
-    local python_success=true
-    local go_success=true
-    local binary_success=true
+    log_step "Starting tool updates..."
     
-    update_npm_tools || npm_success=false
-    update_python_tools || python_success=false
-    update_go_tools || go_success=false
-    update_binary_releases || binary_success=false
+    update_npm_tools
+    update_python_tools
+    update_go_tools
+    update_binary_releases
     
-    # Report results
-    if [[ "$npm_success" == "true" && "$python_success" == "true" && "$go_success" == "true" && "$binary_success" == "true" ]]; then
-        log_info "✓ All updates completed successfully"
-    else
-        log_warn "Some updates had issues:"
-        [[ "$npm_success" == "false" ]] && log_warn "  - NPM tools had issues"
-        [[ "$python_success" == "false" ]] && log_warn "  - Python tools had issues"  
-        [[ "$go_success" == "false" ]] && log_warn "  - Go tools had issues"
-        [[ "$binary_success" == "false" ]] && log_warn "  - Binary tools had issues"
-        log_info "Continuing with verification..."
-    fi
+    log_step "Update process completed. Starting verification..."
     
-    # Verify and test
     if verify_installation; then
         test_tools
         log_info ""
         log_info "🎉 Update completed successfully!"
         log_info "Tools installed to: $INSTALL_DIR"
-        log_info "Backup saved to: $BACKUP_DIR"
-        log_info ""
-        log_info "You can now test your setup with:"
-        log_info "  nvim test.py  # Test Python LSP"
-        log_info "  nvim test.lua # Test Lua LSP"
-        log_info "  nvim test.sh  # Test Shell LSP"
         
-        # Clean up old backup if everything works
         if [[ -d "$BACKUP_DIR" ]]; then
-            read -p "Remove backup directory? (y/N): " -n 1 -r
+            read -p "Update was successful. Remove backup directory '$BACKUP_DIR'? (y/N): " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 rm -rf "$BACKUP_DIR"
                 log_info "Backup removed"
+            else
+                log_info "Backup kept at $BACKUP_DIR"
             fi
         fi
+        exit 0
     else
-        log_error "Verification failed"
-        restore_backup
+        log_error "Update failed during verification stage."
         exit 1
     fi
 }
 
-# Trap to restore backup on failure
-trap 'log_error "Update failed"; restore_backup' ERR
+# Trap for failure
+trap 'restore_backup' ERR
 
 # Run main function
 main "$@"
