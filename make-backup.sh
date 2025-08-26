@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # A script to create a portable, self-contained backup of a Neovim setup.
 # The backup is structured to work seamlessly with XDG_CONFIG_HOME and XDG_DATA_HOME.
 
@@ -8,7 +9,7 @@ BACKUP_DIR="nvim-portable-${RANDOM_SUFFIX}"
 
 # Create the new, self-contained directory structure
 mkdir -p "$BACKUP_DIR/config"
-mkdir -p "$BACKUP_DIR/share"
+mkdir -p "$BACKUP_DIR/share" 
 mkdir -p "$BACKUP_DIR/nvim-tools"
 
 echo "Creating a complete backup of your Neovim setup..."
@@ -31,9 +32,8 @@ backup_directory() {
                 return 1
             }
         else
-            # Copy contents of source directory into destination directory
-            # The trailing slash on $src/ is crucial - it copies contents, not the directory itself
-            cp -rL "$src/." "$dest/" || {
+            # The -rL flag copies recursively, following symlinks if they exist
+            cp -rL "$src" "$dest" || {
                 echo "Warning: Failed to backup $desc from $src"
                 return 1
             }
@@ -50,29 +50,11 @@ backup_directory "$HOME/.config/local/nvim" "$BACKUP_DIR/config/nvim-local" "loc
 backup_directory "$HOME/.local/share/nvim" "$BACKUP_DIR/share/nvim" "nvim share data" "mason"
 backup_directory "$HOME/.local/share/nvim-tools" "$BACKUP_DIR/nvim-tools" "nvim-tools"
 
-# Clean Git repositories in lazy plugin directory to prevent update conflicts
-clean_lazy_plugins() {
-    local lazy_dir="$BACKUP_DIR/share/nvim/lazy"
-    if [[ -d "$lazy_dir" ]]; then
-        echo "Cleaning Git repositories in lazy plugins..."
-        find "$lazy_dir" -name ".git" -type d | while read -r git_dir; do
-            local plugin_dir=$(dirname "$git_dir")
-            echo "  Cleaning $(basename "$plugin_dir")"
-            
-            # Reset any local changes and clean untracked files
-            (cd "$plugin_dir" && git reset --hard HEAD && git clean -fd) 2>/dev/null || {
-                echo "    Warning: Failed to clean $plugin_dir"
-            }
-        done
-    fi
-}
-
-clean_lazy_plugins
-
 # Create a README with instructions for running the portable instance
 README_CONTENT="### Portable Neovim Instance
 
 To run this portable Neovim setup, first navigate to this directory.
+
 Then, you can export the following environment variables before launching Neovim:
 
 \`\`\`bash
@@ -86,14 +68,17 @@ This will tell Neovim to use the configuration and data from this portable direc
 leaving your primary setup untouched. The PATH export ensures that nvim-tools are available.
 
 ### Directory Structure
+
 - \`config/nvim/\` - Main nvim configuration from ~/src/dotfiles/nvim.work
 - \`config/nvim-local/\` - Local nvim configuration from ~/.config/local/nvim
 - \`share/nvim/\` - Nvim data directory from ~/.local/share/nvim (excluding mason)
 - \`nvim-tools/\` - Development tools from ~/.local/share/nvim-tools
 
 ### Notes
-If you have a local config that should override the main config, you may need to
+
+If you have a local config that should override the main config, you may need to 
 source it manually from within nvim or set up your init.lua to load both configs.
+
 "
 
 echo "$README_CONTENT" > "$BACKUP_DIR/README.md"
