@@ -1,0 +1,47 @@
+# Use the CentOS Stream 8 base image from Quay.io
+FROM quay.io/centos/centos:stream8
+
+# Update repository configuration to use vault.centos.org and install dnf-plugins-core
+RUN sed -i 's|mirrorlist=http://mirrorlist.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
+    sed -i 's|^#.*baseurl=http|baseurl=http|g' /etc/yum.repos.d/CentOS-* && \
+    sed -i 's|^mirrorlist=http|#mirrorlist=http|g' /etc/yum.repos.d/CentOS-* && \
+    sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
+    dnf install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled powertools
+
+# Install the necessary build tools and dependencies
+RUN dnf update -y && \
+    dnf groupinstall -y "Development Tools" && \
+    dnf install -y \
+        clang \
+        cmake \
+        pkgconf \
+        libxcb-devel \
+        libX11-devel \
+        libxkbcommon-x11-devel \
+        wayland-devel \
+        wayland-protocols-devel \
+        mesa-libGL-devel \
+        fontconfig-devel \
+        freetype-devel \
+        libzstd-devel \
+        openssl-devel \
+        git && \
+    dnf clean all
+
+# Install rustup and the Rust toolchain
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Set working directory
+WORKDIR /build
+
+# Clone WezTerm source with the nightly build requirements
+RUN git clone --depth=1 --branch=main --recursive https://github.com/wezterm/wezterm.git . && \
+    git submodule update --init --recursive
+
+# Get dependencies and build WezTerm
+RUN ./get-deps && \
+    cargo build --release
+
+# The binary will be at /build/target/release/wezterm
