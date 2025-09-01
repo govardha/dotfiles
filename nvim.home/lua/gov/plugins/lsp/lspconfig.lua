@@ -74,6 +74,13 @@ return {
 			},
 		})
 
+		vim.diagnostic.config({
+			signs = true,
+			virtual_text = true,
+			underline = true,
+			update_in_insert = false,
+		})
+
 		-- Get lspconfig
 		local lspconfig = require("lspconfig")
 

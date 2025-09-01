@@ -27,12 +27,15 @@ return {
 
 		-- Python
 		local python_formatters = {}
+
 		if executable_exists("ruff") then
 			table.insert(python_formatters, "ruff")
 		end
+
 		if executable_exists("black") then
 			table.insert(python_formatters, "black")
 		end
+
 		if #python_formatters > 0 then
 			formatters_by_ft.python = python_formatters
 		end
