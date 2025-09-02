@@ -14,8 +14,6 @@ BACKUP_DIR="$HOME/.local/share/nvim-tools-backup-$(date +%Y%m%d-%H%M%S)"
 DEBUG_MODE=${DEBUG_MODE:-false}
 
 # Tool configurations - easily add/remove tools here
-# Note: The 'basedpyright' tool is listed twice in the original script.
-# This has been corrected to a single entry.
 declare -A NPM_TOOLS=(
     ["basedpyright"]="basedpyright-langserver"
     ["bash-language-server"]="bash-language-server"
@@ -23,30 +21,22 @@ declare -A NPM_TOOLS=(
     ["yaml-language-server"]="yaml-language-server"
     ["vscode-langservers-extracted"]="vscode-json-language-server"
     ["@microsoft/compose-language-service"]="docker-compose-langserver"
+    ["prettier"]="prettier"
 )
 
 declare -a PYTHON_TOOLS=(
     "ruff"
     "black"
-    # Add more Python tools here
-    # "mypy"
-    # "flake8"
 )
 
 declare -A GO_TOOLS=(
     ["shfmt"]="mvdan.cc/sh/v3/cmd/shfmt@latest"
-    # Add more Go tools here
-    # ["goimports"]="golang.org/x/tools/cmd/goimports@latest"
-    # ["golangci-lint"]="github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
 )
 
 declare -A BINARY_TOOLS=(
     ["lua-language-server"]="LuaLS/lua-language-server"
     ["shellcheck"]="koalaman/shellcheck"
     ["stylua"]="JohnnyMorganz/StyLua"
-    # Add more binary tools here
-    # ["hadolint"]="hadolint/hadolint"
-    # ["actionlint"]="rhysd/actionlint"
 )
 
 # Colors for output
@@ -108,42 +98,58 @@ restore_backup() {
 detect_system() {
     export SYSTEM_OS=$(uname -s | tr '[:upper:]' '[:lower:]')
     export SYSTEM_ARCH=$(uname -m)
-    
+
     case "$SYSTEM_ARCH" in
         x86_64) export SYSTEM_ARCH="x64" ;;
         aarch64|arm64) export SYSTEM_ARCH="arm64" ;;
     esac
-    
+
     log_info "Detected system: $SYSTEM_OS-$SYSTEM_ARCH"
 }
 
-# Function to get latest GitHub release URL
+# Function to get latest GitHub release info
+get_latest_release_info() {
+    local repo="$1"
+    local api_url="https://api.github.com/repos/$repo/releases/latest"
+    
+    curl -s "$api_url" 2>/dev/null || return 1
+}
+
+# Function to get latest GitHub release URL with better pattern matching
 get_latest_release_url() {
     local repo="$1"
     local pattern="$2"
     
-    local api_url="https://api.github.com/repos/$repo/releases/latest"
-    # Fallback to tags if no releases are found (e.g. for actionlint)
-    local fallback_api_url="https://api.github.com/repos/$repo/tags"
-    local download_url
-    
-    # Try releases first
-    download_url=$(curl -s "$api_url" | grep -o "https://github.com/$repo/releases/download/[^\"]*$pattern[^\"]*" | head -1)
-    
-    # If not found, try tags (e.g. for actionlint)
-    if [[ -z "$download_url" ]]; then
-        log_debug "No release found, trying tags..."
-        local latest_tag=$(curl -s "$fallback_api_url" | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -1)
-        if [[ -n "$latest_tag" ]]; then
-            download_url="https://github.com/$repo/releases/download/$latest_tag/$pattern"
-            log_debug "Found tag: $latest_tag, generated URL: $download_url"
-        fi
+    local release_json
+    if ! release_json=$(get_latest_release_info "$repo"); then
+        log_debug "Failed to get release info for $repo"
+        return 1
     fi
     
-    if [[ -n "$download_url" ]]; then
-        echo "$download_url"
+    # Extract all browser_download_url values
+    local urls=$(echo "$release_json" | grep -o '"browser_download_url":[[:space:]]*"[^"]*"' | sed 's/"browser_download_url":[[:space:]]*"//g' | sed 's/"$//g')
+    
+    if [[ -z "$urls" ]]; then
+        log_debug "No download URLs found in release"
+        return 1
+    fi
+    
+    # Find matching URL using the pattern
+    local matched_url=""
+    while IFS= read -r url; do
+        local filename="${url##*/}"
+        log_debug "Checking filename: $filename against pattern: $pattern"
+        if [[ "$filename" =~ $pattern ]]; then
+            matched_url="$url"
+            break
+        fi
+    done <<< "$urls"
+    
+    if [[ -n "$matched_url" ]]; then
+        echo "$matched_url"
         return 0
     else
+        log_debug "No URL matched pattern: $pattern"
         return 1
     fi
 }
@@ -154,15 +160,15 @@ update_npm_tools() {
         log_warn "npm not found. Skipping Node.js tools."
         return 0
     fi
-    
+
     log_step "Updating Node.js tools..."
-    
+
     for tool in "${!NPM_TOOLS[@]}"; do
         local symlink_name="${NPM_TOOLS[$tool]}"
         log_info "Updating $tool..."
         if NPM_CONFIG_PREFIX="$NPM_DIR" npm install -g "$tool@latest"; then
             log_info "✓ Successfully installed $tool"
-            
+
             # Create symlink if specified
             if [[ -n "$symlink_name" ]]; then
                 if [[ -f "$NPM_DIR/bin/$symlink_name" ]]; then
@@ -179,7 +185,6 @@ update_npm_tools() {
     done
 }
 
-# Function to install/update Python tools
 # Function to install/update Python tools
 update_python_tools() {
     if ! command_exists pip; then
@@ -217,29 +222,30 @@ update_python_tools() {
 
     return 0
 }
+
 # Function to install/update Go tools
 update_go_tools() {
     if ! command_exists go; then
         log_warn "go not found. Skipping Go tools."
         return 0
     fi
-    
+
     log_step "Updating Go tools..."
-    
+
     local go_version=$(go version | grep -o 'go[0-9]\+\.[0-9]\+' | head -1)
     log_info "Go version: $go_version"
-    
+
     for tool_name in "${!GO_TOOLS[@]}"; do
         local go_pkg="${GO_TOOLS[$tool_name]}"
         log_info "Installing $tool_name from $go_pkg..."
-        
+
         # Use GOBIN to ensure installation to the correct directory
         if GOBIN="$BIN_DIR" go install "$go_pkg" 2>&1; then
             if [[ -f "$BIN_DIR/$tool_name" ]]; then
                 log_info "✓ Successfully installed $tool_name to $BIN_DIR"
             else
                 log_warn "✗ Binary not found at expected location $BIN_DIR/$tool_name"
-                return 1 # Fail fast if the binary isn't where it should be
+                return 1
             fi
         else
             log_error "Failed to install $tool_name"
@@ -248,15 +254,29 @@ update_go_tools() {
     done
 }
 
-# Function to get binary pattern for different tools
+# Function to get binary pattern for different tools - FIXED PATTERNS
 get_binary_pattern() {
     local tool="$1"
     local os="$SYSTEM_OS"
     local arch="$SYSTEM_ARCH"
-    
+
     case "$tool" in
         "lua-language-server")
-            echo "lua-language-server-$os-$arch.tar.gz"
+            # LuaLS uses different naming convention
+            case "$os" in
+                linux) 
+                    case "$arch" in
+                        x64) echo "lua-language-server-3\.[0-9]+\.[0-9]+-linux-x64\.tar\.gz" ;;
+                        arm64) echo "lua-language-server-3\.[0-9]+\.[0-9]+-linux-arm64\.tar\.gz" ;;
+                    esac
+                    ;;
+                darwin)
+                    case "$arch" in
+                        x64) echo "lua-language-server-3\.[0-9]+\.[0-9]+-darwin-x64\.tar\.gz" ;;
+                        arm64) echo "lua-language-server-3\.[0-9]+\.[0-9]+-darwin-arm64\.tar\.gz" ;;
+                    esac
+                    ;;
+            esac
             ;;
         "shellcheck")
             local shellcheck_arch="$arch"
@@ -264,31 +284,25 @@ get_binary_pattern() {
                 x64) shellcheck_arch="x86_64" ;;
                 arm64) shellcheck_arch="aarch64" ;;
             esac
-            echo "shellcheck-v[0-9.]*.$os.$shellcheck_arch.tar.xz"
+            echo "shellcheck-v[0-9.]+\.$os\.$shellcheck_arch\.tar\.xz"
             ;;
         "stylua")
             case "$os" in
-                linux) echo "stylua-$arch-unknown-linux-gnu.zip" ;;
-                darwin) echo "stylua-$arch-apple-darwin.zip" ;;
-                *) echo "" ;;
-            esac
-            ;;
-        "hadolint")
-            case "$os" in
-                linux) echo "hadolint-Linux-$arch" ;;
-                darwin) echo "hadolint-Darwin-$arch" ;;
-                *) echo "" ;;
-            esac
-            ;;
-        "actionlint")
-            case "$os" in
-                linux) echo "actionlint_linux_$arch.tar.gz" ;;
-                darwin) echo "actionlint_darwin_$arch.tar.gz" ;;
-                *) echo "" ;;
+                linux) 
+                    case "$arch" in
+                        x64) echo "stylua-linux-x86_64\.zip" ;;
+                        arm64) echo "stylua-linux-aarch64\.zip" ;;
+                    esac
+                    ;;
+                darwin) 
+                    case "$arch" in
+                        x64) echo "stylua-macos-x86_64\.zip" ;;
+                        arm64) echo "stylua-macos-aarch64\.zip" ;;
+                    esac
+                    ;;
             esac
             ;;
         *)
-            # Default pattern
             echo "$os-$arch"
             ;;
     esac
@@ -297,42 +311,42 @@ get_binary_pattern() {
 # Function to install/update binary releases
 update_binary_releases() {
     log_step "Updating binary releases..."
-    
+
     local temp_dir="/tmp/nvim-tools-update-$(date +%s)"
     mkdir -p "$temp_dir" || { log_error "Failed to create temp directory"; return 1; }
-    
+
     # Function to download and install a binary
     install_binary() {
         local name="$1"
         local repo="$2"
-        
+
         log_info "Updating $name..."
         cd "$temp_dir"
-        
+
         local pattern=$(get_binary_pattern "$name")
         if [[ -z "$pattern" ]]; then
             log_warn "No pattern defined for $name on $SYSTEM_OS-$SYSTEM_ARCH, skipping..."
             return 0
         fi
-        
+
         local url
         if ! url=$(get_latest_release_url "$repo" "$pattern"); then
             log_warn "Could not find latest release for $name, skipping..."
             return 0
         fi
-        
+
         log_info "Found latest release: $url"
-        
+
         local filename="${url##*/}"
         if ! curl -L -f "$url" -o "$filename"; then
             log_warn "Failed to download $name from $url"
             return 1
         fi
-        
-        local binary_path=""
-        local extract_dir="$temp_dir/extract"
+
+        local extract_dir="$temp_dir/extract_$name"
         mkdir -p "$extract_dir"
-        
+
+        # Extract based on file type
         if [[ "$filename" == *".tar.gz" ]]; then
             tar -xzf "$filename" -C "$extract_dir" || return 1
         elif [[ "$filename" == *".tar.xz" ]]; then
@@ -341,46 +355,62 @@ update_binary_releases() {
             unzip -q "$filename" -d "$extract_dir" || return 1
         else
             # Direct binary file
-            binary_path="$temp_dir/$filename"
-            mv "$filename" "$binary_path"
+            cp "$filename" "$extract_dir/$name"
+            chmod +x "$extract_dir/$name"
         fi
-        
-        if [[ -z "$binary_path" ]]; then
-            # Find the binary in the extracted directory
-            if [[ "$name" == "lua-language-server" ]]; then
+
+        # Install based on tool type
+        case "$name" in
+            "lua-language-server")
                 # Special handling for lua-language-server
                 rm -rf "$INSTALL_DIR/lua-language-server"
-                cp -r "$extract_dir" "$INSTALL_DIR/lua-language-server"
-                
-                cat > "$BIN_DIR/lua-language-server" << EOF
+                # Find the actual directory structure
+                local luals_dir=$(find "$extract_dir" -name "bin" -type d | head -1)
+                if [[ -n "$luals_dir" ]]; then
+                    luals_dir=$(dirname "$luals_dir")
+                    cp -r "$luals_dir" "$INSTALL_DIR/lua-language-server"
+                    
+                    # Create wrapper script
+                    cat > "$BIN_DIR/lua-language-server" << EOF
 #!/bin/bash
 cd "$INSTALL_DIR/lua-language-server"
 exec ./bin/lua-language-server "\$@"
 EOF
-                chmod +x "$BIN_DIR/lua-language-server"
-            else
-                local found_binary=$(find "$extract_dir" -name "$name*" -type f -executable | head -1)
-                if [[ -n "$found_binary" ]]; then
-                    binary_path="$found_binary"
+                    chmod +x "$BIN_DIR/lua-language-server"
                 else
-                    log_warn "Binary '$name' not found in archive"
+                    log_error "Could not find lua-language-server structure"
                     return 1
                 fi
-                cp "$binary_path" "$BIN_DIR/$name"
-                chmod +x "$BIN_DIR/$name"
-            fi
-        fi
-        
+                ;;
+            *)
+                # For other tools, find the binary
+                local found_binary=""
+                if [[ -f "$extract_dir/$name" ]]; then
+                    found_binary="$extract_dir/$name"
+                else
+                    found_binary=$(find "$extract_dir" -name "$name" -type f -executable | head -1)
+                fi
+                
+                if [[ -n "$found_binary" ]]; then
+                    cp "$found_binary" "$BIN_DIR/$name"
+                    chmod +x "$BIN_DIR/$name"
+                else
+                    log_error "Binary '$name' not found in archive"
+                    return 1
+                fi
+                ;;
+        esac
+
         log_info "✓ $name updated successfully"
         rm -rf "$extract_dir" "$filename"
     }
-    
+
     local success=true
     for tool_name in "${!BINARY_TOOLS[@]}"; do
         local repo="${BINARY_TOOLS[$tool_name]}"
         install_binary "$tool_name" "$repo" || success=false
     done
-    
+
     rm -rf "$temp_dir"
     $success
 }
@@ -388,7 +418,7 @@ EOF
 # Function to verify installation
 verify_installation() {
     log_step "Verifying installation..."
-    
+
     local tools=()
     for tool in "${!NPM_TOOLS[@]}"; do
         local symlink_name="${NPM_TOOLS[$tool]}"
@@ -396,16 +426,16 @@ verify_installation() {
             tools+=("$symlink_name")
         fi
     done
-    
+
     tools+=("${PYTHON_TOOLS[@]}")
     for tool in "${!GO_TOOLS[@]}"; do
         tools+=("$tool")
     done
-    
+
     for tool in "${!BINARY_TOOLS[@]}"; do
         tools+=("$tool")
     done
-    
+
     local failed_tools=()
     for tool in "${tools[@]}"; do
         if command_exists "$tool"; then
@@ -415,7 +445,7 @@ verify_installation() {
             failed_tools+=("$tool")
         fi
     done
-    
+
     if [[ ${#failed_tools[@]} -eq 0 ]]; then
         log_info "✓ All tools verified successfully!"
         return 0
@@ -428,21 +458,24 @@ verify_installation() {
 # Function to test tools
 test_tools() {
     log_step "Testing tools..."
-    
+
     local test_passed=true
-    
-    command_exists lua-language-server && lua-language-server --version >/dev/null 2>&1 && log_info "✓ lua-language-server working" || { log_warn "✗ lua-language-server test failed"; test_passed=false; }
-    
+
+    if command_exists lua-language-server; then
+        lua-language-server --version >/dev/null 2>&1 && log_info "✓ lua-language-server working" || { log_warn "✗ lua-language-server test failed"; test_passed=false; }
+    fi
+
     if command_exists basedpyright-langserver; then
         echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"capabilities":{}}}' | timeout 5 basedpyright-langserver --stdio >/dev/null 2>&1 && log_info "✓ basedpyright-langserver working" || { log_warn "✗ basedpyright-langserver test failed"; test_passed=false; }
     fi
-    
+
     command_exists ruff && ruff --version >/dev/null 2>&1 && log_info "✓ ruff working" || { log_warn "✗ ruff test failed"; test_passed=false; }
     command_exists black && black --version >/dev/null 2>&1 && log_info "✓ black working" || { log_warn "✗ black test failed"; test_passed=false; }
     command_exists shellcheck && shellcheck --version >/dev/null 2>&1 && log_info "✓ shellcheck working" || { log_warn "✗ shellcheck test failed"; test_passed=false; }
     command_exists stylua && stylua --version >/dev/null 2>&1 && log_info "✓ stylua working" || { log_warn "✗ stylua test failed"; test_passed=false; }
     command_exists shfmt && shfmt --version >/dev/null 2>&1 && log_info "✓ shfmt working" || { log_warn "✗ shfmt test failed"; test_passed=false; }
-    
+    command_exists prettier && prettier --version >/dev/null 2>&1 && log_info "✓ prettier working" || { log_warn "✗ prettier test failed"; test_passed=false; }
+
     if $test_passed; then
         log_info "✓ All configured tools passed basic tests."
     else
@@ -469,7 +502,7 @@ CUSTOMIZATION:
 To add/remove tools, edit the tool arrays at the top of this script:
 
     NPM_TOOLS        - Node.js packages
-    PYTHON_TOOLS     - Python packages  
+    PYTHON_TOOLS     - Python packages
     GO_TOOLS         - Go packages
     BINARY_TOOLS     - Binary releases from GitHub
 
@@ -486,7 +519,7 @@ EOF
 list_tools() {
     echo "Configured Tools:"
     echo
-    
+
     echo "Node.js Tools (NPM_TOOLS):"
     for tool in "${!NPM_TOOLS[@]}"; do
         local symlink="${NPM_TOOLS[$tool]}"
@@ -497,19 +530,19 @@ list_tools() {
         fi
     done
     echo
-    
+
     echo "Python Tools (PYTHON_TOOLS):"
     for tool in "${PYTHON_TOOLS[@]}"; do
         echo "  $tool"
     done
     echo
-    
+
     echo "Go Tools (GO_TOOLS):"
     for tool in "${!GO_TOOLS[@]}"; do
         echo "  $tool (${GO_TOOLS[$tool]})"
     done
     echo
-    
+
     echo "Binary Tools (BINARY_TOOLS):"
     for tool in "${!BINARY_TOOLS[@]}"; do
         echo "  $tool (${BINARY_TOOLS[$tool]})"
@@ -551,38 +584,38 @@ main() {
                 ;;
         esac
     done
-    
+
     log_info "Starting Neovim tools update..."
     log_info "This will update all your development tools to the latest versions"
-    
+
     read -p "Continue with update? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         log_info "Update cancelled"
         exit 0
     fi
-    
+
     mkdir -p "$BIN_DIR" "$NPM_DIR"
-    
+
     detect_system
-    
+
     backup_current_installation
-    
+
     log_step "Starting tool updates..."
-    
+
     update_npm_tools
     update_python_tools
     update_go_tools
     update_binary_releases
-    
+
     log_step "Update process completed. Starting verification..."
-    
+
     if verify_installation; then
         test_tools
         log_info ""
         log_info "🎉 Update completed successfully!"
         log_info "Tools installed to: $INSTALL_DIR"
-        
+
         if [[ -d "$BACKUP_DIR" ]]; then
             read -p "Update was successful. Remove backup directory '$BACKUP_DIR'? (y/N): " -n 1 -r
             echo
