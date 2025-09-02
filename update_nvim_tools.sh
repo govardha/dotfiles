@@ -68,9 +68,9 @@ log_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
-# Function to check if command exists
+# Function to check if command exists (checks both PATH and our install directory)
 command_exists() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1 || [[ -x "$BIN_DIR/$1" ]]
 }
 
 # Function to backup current installation
@@ -419,6 +419,10 @@ EOF
 verify_installation() {
     log_step "Verifying installation..."
 
+    # Temporarily add our bin directory to PATH for verification
+    local original_path="$PATH"
+    export PATH="$BIN_DIR:$PATH"
+
     local tools=()
     for tool in "${!NPM_TOOLS[@]}"; do
         local symlink_name="${NPM_TOOLS[$tool]}"
@@ -446,6 +450,9 @@ verify_installation() {
         fi
     done
 
+    # Restore original PATH
+    export PATH="$original_path"
+
     if [[ ${#failed_tools[@]} -eq 0 ]]; then
         log_info "✓ All tools verified successfully!"
         return 0
@@ -458,6 +465,10 @@ verify_installation() {
 # Function to test tools
 test_tools() {
     log_step "Testing tools..."
+
+    # Temporarily add our bin directory to PATH for testing
+    local original_path="$PATH"
+    export PATH="$BIN_DIR:$PATH"
 
     local test_passed=true
 
@@ -475,6 +486,9 @@ test_tools() {
     command_exists stylua && stylua --version >/dev/null 2>&1 && log_info "✓ stylua working" || { log_warn "✗ stylua test failed"; test_passed=false; }
     command_exists shfmt && shfmt --version >/dev/null 2>&1 && log_info "✓ shfmt working" || { log_warn "✗ shfmt test failed"; test_passed=false; }
     command_exists prettier && prettier --version >/dev/null 2>&1 && log_info "✓ prettier working" || { log_warn "✗ prettier test failed"; test_passed=false; }
+
+    # Restore original PATH
+    export PATH="$original_path"
 
     if $test_passed; then
         log_info "✓ All configured tools passed basic tests."
@@ -615,6 +629,12 @@ main() {
         log_info ""
         log_info "🎉 Update completed successfully!"
         log_info "Tools installed to: $INSTALL_DIR"
+        log_info ""
+        log_info "To use these tools, add the following to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
+        log_info "export PATH=\"\$HOME/.local/share/nvim-tools/bin:\$PATH\""
+        log_info ""
+        log_info "Or run this command to add it to your current shell:"
+        log_info "export PATH=\"$BIN_DIR:\$PATH\""
 
         if [[ -d "$BACKUP_DIR" ]]; then
             read -p "Update was successful. Remove backup directory '$BACKUP_DIR'? (y/N): " -n 1 -r
