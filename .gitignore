@@ -1,3 +1,4 @@
 nvim*/lazy-lock.json
 nvim-portable-*
 *.gz
+*.DS_*
