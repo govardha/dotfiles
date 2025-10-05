@@ -10,7 +10,6 @@ BACKUP_DIR="nvim-portable-${RANDOM_SUFFIX}"
 # Create the new, self-contained directory structure
 mkdir -p "$BACKUP_DIR/config"
 mkdir -p "$BACKUP_DIR/share" 
-mkdir -p "$BACKUP_DIR/nvim-tools"
 
 echo "Creating a complete backup of your Neovim setup..."
 echo "Backup directory: $BACKUP_DIR"
@@ -48,7 +47,7 @@ backup_directory() {
 backup_directory "$HOME/src/dotfiles/nvim.work" "$BACKUP_DIR/config/nvim" "dotfiles nvim.work config"
 backup_directory "$HOME/.config/local/nvim" "$BACKUP_DIR/config/nvim-local" "local nvim config"
 backup_directory "$HOME/.local/share/nvim" "$BACKUP_DIR/share/nvim" "nvim share data" "mason"
-backup_directory "$HOME/.local/share/nvim-tools" "$BACKUP_DIR/nvim-tools" "nvim-tools"
+backup_directory "$HOME/.local/share/nvim-tools" "$BACKUP_DIR" "nvim-tools"
 
 # Create a README with instructions for running the portable instance
 README_CONTENT="### Portable Neovim Instance
