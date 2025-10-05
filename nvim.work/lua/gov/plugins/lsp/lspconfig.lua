@@ -66,85 +66,30 @@ return {
 		vim.diagnostic.config({
 			signs = {
 				text = {
-					[vim.diagnostic.severity.ERROR] = " ",
-					[vim.diagnostic.severity.WARN] = " ",
+					[vim.diagnostic.severity.ERROR] = " ",
+					[vim.diagnostic.severity.WARN] = " ",
 					[vim.diagnostic.severity.HINT] = "󰠠 ",
-					[vim.diagnostic.severity.INFO] = " ",
+					[vim.diagnostic.severity.INFO] = " ",
 				},
 			},
 		})
 
-		-- Get lspconfig
-		local lspconfig = require("lspconfig")
+		vim.lsp.config("*", {
+			capabilities = capabilities,
+		})
 
-		-- Helper function to check if executable exists in PATH
-		local function executable_exists(name)
-			return vim.fn.executable(name) == 1
-		end
-
-		-- Configure each LSP server if the executable exists
-		if executable_exists("lua-language-server") or executable_exists("lua_ls") then
-			lspconfig.lua_ls.setup({
-				capabilities = capabilities,
-				settings = {
-					Lua = {
-						-- make the language server recognize "vim" global
-						diagnostics = {
-							globals = { "vim" },
-						},
-						completion = {
-							callSnippet = "Replace",
-						},
+		vim.lsp.config("lua_ls", {
+			settings = {
+				Lua = {
+					-- make the language server recognize "vim" global
+					diagnostics = {
+						globals = { "vim" },
+					},
+					completion = {
+						callSnippet = "Replace",
 					},
 				},
-			})
-		end
-
-		if executable_exists("basedpyright") or executable_exists("pyright") then
-			lspconfig.basedpyright.setup({
-				capabilities = capabilities,
-				settings = {
-					basedpyright = {
-						-- Enable additional type checking features
-						analysis = {
-							typeCheckingMode = "basic", -- or "strict"
-							autoSearchPaths = true,
-							diagnosticMode = "workspace",
-							useLibraryCodeForTypes = true,
-						},
-					},
-				},
-			})
-		end
-
-		if executable_exists("bash-language-server") then
-			lspconfig.bashls.setup({
-				capabilities = capabilities,
-			})
-		end
-
-		if executable_exists("ansible-language-server") then
-			lspconfig.ansiblels.setup({
-				capabilities = capabilities,
-			})
-		end
-
-		if executable_exists("vscode-json-language-server") or executable_exists("json-languageserver") then
-			lspconfig.jsonls.setup({
-				capabilities = capabilities,
-			})
-		end
-
-		if executable_exists("yaml-language-server") then
-			lspconfig.yamlls.setup({
-				capabilities = capabilities,
-			})
-		end
-
-		if executable_exists("docker-compose-langserver") then
-			lspconfig.docker_compose_language_service.setup({
-				capabilities = capabilities,
-			})
-		end
+			},
+		})
 	end,
 }
