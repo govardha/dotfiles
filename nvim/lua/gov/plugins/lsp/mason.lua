@@ -1,4 +1,4 @@
-retreturn {
+return {
 	"williamboman/mason.nvim",
 	dependencies = {
 		"williamboman/mason-lspconfig.nvim",
@@ -10,8 +10,8 @@ retreturn {
 		-- Use XDG_DATA_HOME for portable path resolution
 		local data_home = os.getenv("XDG_DATA_HOME") or vim.fn.expand("~/.local/share")
 		local config_home = os.getenv("XDG_CONFIG_HOME") or vim.fn.expand("~/.config")
-		
-		local is_airgapped = os.getenv("AIRGAPPED") == "true" 
+
+		local is_airgapped = os.getenv("AIRGAPPED") == "true"
 			or vim.fn.hostname():match("airgapped") ~= nil
 			or vim.fn.filereadable(config_home .. "/nvim/.airgapped") == 1
 
@@ -66,4 +66,4 @@ retreturn {
 			run_on_start = not is_airgapped,
 		})
 	end,
-}urn {
+}
