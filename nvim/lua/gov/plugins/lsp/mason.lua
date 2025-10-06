@@ -5,15 +5,15 @@ return {
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 	},
 	config = function()
-		-- Detect if running in airgapped environment
-		-- Options: check hostname, environment variable, or presence of a marker file
-		-- Use XDG_DATA_HOME for portable path resolution
+		-- Detect if running with internet connectivity
+		-- By default, assume NO internet (airgapped/offline)
+		-- Only enable updates if explicitly set to online
 		local data_home = os.getenv("XDG_DATA_HOME") or vim.fn.expand("~/.local/share")
 		local config_home = os.getenv("XDG_CONFIG_HOME") or vim.fn.expand("~/.config")
 
-		local is_airgapped = os.getenv("AIRGAPPED") == "true"
-			or vim.fn.hostname():match("airgapped") ~= nil
-			or vim.fn.filereadable(config_home .. "/nvim/.airgapped") == 1
+		local is_online = os.getenv("NVIM_ONLINE") == "true"
+			or vim.fn.hostname():match("online") ~= nil
+			or vim.fn.filereadable(config_home .. "/nvim/.online") == 1
 
 		local mason = require("mason")
 		local mason_lspconfig = require("mason-lspconfig")
@@ -41,8 +41,8 @@ return {
 				"docker_compose_language_service",
 				"lua_ls",
 			},
-			-- Disable automatic installation on airgapped machine
-			automatic_installation = not is_airgapped,
+			-- Only enable automatic installation when online
+			automatic_installation = is_online,
 		})
 
 		-- All formatters, linters, and other tools here
@@ -61,9 +61,9 @@ return {
 				"hadolint",
 				"ansible-lint",
 			},
-			-- Disable automatic installation and updates on airgapped machine
-			auto_update = not is_airgapped,
-			run_on_start = not is_airgapped,
+			-- Only enable automatic installation and updates when online
+			auto_update = is_online,
+			run_on_start = is_online,
 		})
 	end,
 }
