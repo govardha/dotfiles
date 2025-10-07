@@ -1,0 +1,38 @@
+return {
+  "mfussenegger/nvim-lint",
+  event = { "BufReadPre", "BufNewFile" },
+  config = function()
+    local lint = require("lint")
+
+    lint.linters_by_ft = {
+      python = { "ruff" },
+      sh = { "shellcheck" },
+      bash = { "shellcheck" },
+      yaml = { "yamllint" },
+      json = { "jsonlint" },
+      dockerfile = { "hadolint" },
+      -- Ansible files are detected as yaml, but you can add specific ansible linting
+      -- if you have a way to detect ansible files specifically
+    }
+
+    -- Auto-lint on these events
+    local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
+
+    local function try_linting()
+      local linters = lint.linters_by_ft[vim.bo.filetype]
+      lint.try_lint(linters)
+    end
+
+    vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
+      group = lint_augroup,
+      callback = function()
+        try_linting()
+      end,
+    })
+
+    -- Manual lint trigger
+    vim.keymap.set("n", "<leader>l", function()
+      try_linting()
+    end, { desc = "Trigger linting for current file" })
+  end,
+}
