@@ -91,7 +91,6 @@ return {
 				},
 			},
 		})
-<<<<<<< HEAD:nvim/lua/gov/plugins/lsp/lspconfig.lua
 
 		--[[ vim.lsp.config("basedpyright", {
       settings = {
