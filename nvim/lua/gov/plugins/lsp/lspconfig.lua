@@ -7,6 +7,13 @@ return {
 		{ "folke/neodev.nvim", opts = {} },
 	},
 	config = function()
+		-- Detect OS (same as mason.lua for consistency)
+		local uname = vim.loop.os_uname()
+		local is_mac = uname.sysname == "Darwin"
+		local is_linux = uname.sysname == "Linux"
+		local is_rhel = is_linux and vim.fn.filereadable("/etc/redhat-release") == 1
+		local is_ubuntu = is_linux and vim.fn.filereadable("/etc/lsb-release") == 1
+
 		-- import cmp-nvim-lsp plugin
 		local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
@@ -66,57 +73,56 @@ return {
 		vim.diagnostic.config({
 			signs = {
 				text = {
-					[vim.diagnostic.severity.ERROR] = " ",
-					[vim.diagnostic.severity.WARN] = " ",
-					[vim.diagnostic.severity.HINT] = "󰠠 ",
-					[vim.diagnostic.severity.INFO] = " ",
+					[vim.diagnostic.severity.ERROR] = "■ ",
+					[vim.diagnostic.severity.WARN] = "▲ ",
+					[vim.diagnostic.severity.HINT] = "⚑   ",
+					[vim.diagnostic.severity.INFO] = "● ",
 				},
 			},
 		})
 
+		-- Default config for all LSP servers
 		vim.lsp.config("*", {
 			capabilities = capabilities,
 		})
 
-		vim.lsp.config("lua_ls", {
+		-- Lua LSP configuration (EmmyLua for all platforms now)
+		vim.lsp.config("emmylua_ls", {
 			settings = {
-				Lua = {
-					-- make the language server recognize "vim" global
+				EmmyLua = {
+					completion = {
+						callSnippet = "Replace",
+					},
 					diagnostics = {
 						globals = { "vim" },
 					},
-					completion = {
-						callSnippet = "Replace",
+					hint = {
+						enable = true,
+					},
+					workspace = {
+						checkThirdParty = false,
 					},
 				},
 			},
 		})
 
-		--[[ vim.lsp.config("basedpyright", {
-      settings = {
-        basedpyright = {
-          -- Enable additional type checking features
-          analysis = {
-            typeCheckingMode = "standard", -- or "strict"
-            autoSearchPaths = true,
-            diagnosticMode = "openFilesOnly",
-            useLibraryCodeForTypes = true,
-            diagnosticSeverityOverrides = {
-              reportUnknownParameterType = "warning",
-              reportUnknownVariableType = "warning",
-            },
-          },
-        },
-      },
-    }) ]]
-
-		-- New PyreFly configuration
+		-- Python LSP configuration (PyreFly)
 		vim.lsp.config("pyrefly", {
 			-- PyreFly is generally configured through a pyproject.toml
 			-- or just works out of the box with default settings.
 			-- Minimal configuration is typically required here.
 		})
-=======
->>>>>>> main:nvim.work/lua/gov/plugins/lsp/lspconfig.lua
+
+		-- Bash LSP (bashls) - uses defaults
+		-- JSON LSP (jsonls) - uses defaults
+		-- YAML LSP (yamlls) - uses defaults
+		-- Docker Compose LSP (docker_compose_language_service) - uses defaults
+
+		-- Ansible LSP (only on Linux)
+		if is_rhel or is_ubuntu then
+			vim.lsp.config("ansiblels", {
+				-- Uses defaults, can add custom settings here if needed
+			})
+		end
 	end,
 }
