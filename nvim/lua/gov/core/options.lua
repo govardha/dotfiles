@@ -33,21 +33,44 @@ opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line or 
 
 -- Conditional clipboard setup
 if os.getenv("SSH_TTY") then
-  -- Use OSC 52 for SSH sessions
-  vim.g.clipboard = {
-    name = 'OSC 52',
-    copy = {
-      ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
-      ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
-    },
-    paste = {
-      ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
-      ['*'] = require('vim.ui.clipboard.osc52').paste('*'),
-    },
-  }
+	-- Custom OSC 52 implementation (built-in module is broken)
+	local function osc52_copy(lines, _)
+		local text = table.concat(lines, "\n")
+		local b64 = vim.base64.encode(text)
+		io.stdout:write(string.format("\027]52;c;%s\007", b64))
+		io.stdout:flush()
+	end
+
+	local function osc52_paste()
+		return {}
+	end
+
+	vim.g.clipboard = {
+		name = "OSC 52 (custom)",
+		copy = {
+			["+"] = osc52_copy,
+			["*"] = osc52_copy,
+		},
+		paste = {
+			["+"] = osc52_paste,
+			["*"] = osc52_paste,
+		},
+	}
+
+	-- Auto-copy ALL yanks to system clipboard via OSC 52
+	vim.api.nvim_create_autocmd("TextYankPost", {
+		callback = function()
+			if vim.v.event.operator == "y" then
+				local text = table.concat(vim.fn.getreg('"', 1, 1), "\n")
+				local b64 = vim.base64.encode(text)
+				io.stdout:write(string.format("\027]52;c;%s\007", b64))
+				io.stdout:flush()
+			end
+		end,
+	})
 else
-  -- Use system clipboard when local
-  vim.opt.clipboard = "unnamedplus"
+	-- Use system clipboard when local
+	vim.opt.clipboard = "unnamedplus"
 end
 
 -- split windows
@@ -64,19 +87,19 @@ opt.virtualedit = "block"
 local auto_save_group = vim.api.nvim_create_augroup("AutoSave", { clear = true })
 
 vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-  group = auto_save_group,
-  callback = function()
-    if vim.bo.modified and vim.bo.buftype == "" and vim.fn.expand("%") ~= "" then
-      vim.cmd("silent! write")
-    end
-  end,
+	group = auto_save_group,
+	callback = function()
+		if vim.bo.modified and vim.bo.buftype == "" and vim.fn.expand("%") ~= "" then
+			vim.cmd("silent! write")
+		end
+	end,
 })
 
 vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
-  group = auto_save_group,
-  callback = function()
-    if vim.bo.modified and vim.bo.buftype == "" and vim.fn.expand("%") ~= "" then
-      vim.cmd("silent! wall") -- Save all modified buffers
-    end
-  end,
+	group = auto_save_group,
+	callback = function()
+		if vim.bo.modified and vim.bo.buftype == "" and vim.fn.expand("%") ~= "" then
+			vim.cmd("silent! wall") -- Save all modified buffers
+		end
+	end,
 })
