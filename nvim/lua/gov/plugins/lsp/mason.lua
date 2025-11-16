@@ -109,5 +109,51 @@ return {
 			auto_update = is_online,
 			run_on_start = is_online,
 		})
+
+		-- Guard Mason commands when offline
+		local offline_guard = require("gov.core.offline-guard")
+
+		-- Wait a bit for Mason to register its commands
+		vim.defer_fn(function()
+			local mason_commands_to_guard = {
+				{ cmd = "MasonUpdate", needs_online = true },
+				{ cmd = "MasonInstall", needs_online = true },
+				{ cmd = "MasonUninstall", needs_online = false },
+				{ cmd = "Mason", needs_online = false },
+				{ cmd = "MasonLog", needs_online = false },
+			}
+
+			for _, entry in ipairs(mason_commands_to_guard) do
+				local cmd = entry.cmd
+				local needs_online = entry.needs_online
+
+				-- Store reference to original command
+				local ok, original_def = pcall(vim.api.nvim_get_commands, {})
+				if ok and original_def[cmd] then
+					-- Delete and recreate with guard
+					vim.api.nvim_del_user_command(cmd)
+					vim.api.nvim_create_user_command(cmd, function(opts)
+						if needs_online and not offline_guard.check_online(cmd) then
+							return
+						end
+						-- Execute original Mason functionality
+						require("mason.ui").open()
+						if cmd == "MasonUpdate" then
+							require("mason-registry").update()
+						elseif cmd == "MasonInstall" and opts.args ~= "" then
+							require("mason.api.command").MasonInstall(opts.args)
+						end
+					end, {
+						nargs = "*",
+						desc = original_def[cmd].definition,
+						complete = function(_, line)
+							if cmd == "MasonInstall" then
+								return require("mason-core.installer.registry").get_all_package_names()
+							end
+						end,
+					})
+				end
+			end
+		end, 100)
 	end,
 }
