@@ -9,9 +9,11 @@ Instead of having one giant configuration file, this setup breaks everything int
 ## How It Works
 
 ### Main File (`wezterm.lua`)
+
 This is your main config file. It loads all the modules and applies them to your terminal.
 
 ### Safe Loading
+
 The `safe_require` function is like a safety net - if a module is missing or broken, your terminal will still work. It just skips the broken part and logs what went wrong.
 
 ```lua
@@ -24,7 +26,7 @@ local appearance = safe_require("modules.appearance")
 Each module lives in the `modules/` folder and does one job:
 
 - **`appearance.lua`** - Colors, fonts, themes
-- **`keybindings.lua`** - Keyboard shortcuts  
+- **`keybindings.lua`** - Keyboard shortcuts
 - **`mouse.lua`** - Mouse settings
 - **`format.lua`** - How tabs and windows look
 - **`ssh_utils.lua`** - SSH connection stuff
@@ -38,10 +40,10 @@ Each module lives in the `modules/` folder and does one job:
 your-config/
 ├── wezterm.lua           # Main file
 └── modules/              # All your modules
-    ├── appearance.lua    
-    ├── keybindings.lua   
-    ├── mouse.lua         
-    └── ...               
+    ├── appearance.lua
+    ├── keybindings.lua
+    ├── mouse.lua
+    └── ...
 ```
 
 ## How to Use This
@@ -73,6 +75,24 @@ return M
 ## Adding New Stuff
 
 Want to add something new? Just:
+
 1. Make a new file in `modules/`
 2. Add it to the main config file
 3. Done!
+
+-- Option A: Catppuccin Blue (what I showed above)
+'#89b4fa', -- ansi[4]
+'#a6c7ff', -- brights[4]
+
+-- Option B: Cyan-ish (easier on eyes)
+'#7eb4ea', -- ansi[4]
+'#89dceb', -- brights[4]
+
+-- Option C: Purple-blue (stylish)
+'#8ba4f9', -- ansi[4]
+'#b4befe', -- brights[4]
+
+-- Option D: Sky blue (maximum visibility)
+'#87ceeb', -- ansi[4]
+'#9dd9f3', -- brights[4]
+
