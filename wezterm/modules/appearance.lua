@@ -75,6 +75,32 @@ function M.apply(config)
 		window_close = window_close,
 		window_close_hover = window_close,
 	}
+
+	-- OVERRIDE ANSI COLORS - Fix that god-awful dark blue
+	config.colors = {
+		-- Basic 8 ANSI colors (indices 0-7)
+		ansi = {
+			"#000000", -- 0: black
+			"#ff5555", -- 1: red
+			"#50fa7b", -- 2: green
+			"#f1fa8c", -- 3: yellow
+			"#89b4fa", -- 4: blue (BRIGHTENED - was dark blue, now visible)
+			"#ff79c6", -- 5: magenta
+			"#8be9fd", -- 6: cyan
+			"#bbbbbb", -- 7: white
+		},
+		-- Bright variants (indices 8-15) - used with bold/bright attribute
+		brights = {
+			"#555555", -- 8: bright black (gray)
+			"#ff6e67", -- 9: bright red
+			"#5af78e", -- 10: bright green
+			"#f4f99d", -- 11: bright yellow
+			"#a6c7ff", -- 12: bright blue (VERY BRIGHT - ensures visibility)
+			"#ff92d0", -- 13: bright magenta
+			"#9aedfe", -- 14: bright cyan
+			"#ffffff", -- 15: bright white
+		},
+	}
 end
 
 return M
