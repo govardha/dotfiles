@@ -24,6 +24,17 @@ function M.apply(config)
 				end),
 			}),
 		},
+
+		-- INSTANT LS_COLORS EXPORT TO CLIPBOARD
+		{
+			key = "c",
+			mods = "LEADER",
+			action = wezterm.action_callback(function(window, pane)
+				local ls_colors_cmd = "export LS_COLORS='di=01;95:ln=01;36:ex=01;32'"
+				window:copy_to_clipboard(ls_colors_cmd)
+				window:toast_notification("WezTerm", "LS_COLORS copied to clipboard!", nil, 2000)
+			end),
+		},
 	}
 
 	-- Tmux shit
@@ -32,4 +43,3 @@ function M.apply(config)
 end
 
 return M
-
