@@ -80,19 +80,37 @@ Want to add something new? Just:
 2. Add it to the main config file
 3. Done!
 
--- Option A: Catppuccin Blue (what I showed above)
-'#89b4fa', -- ansi[4]
-'#a6c7ff', -- brights[4]
+The "Vibrant and Clear" Scheme
+Directory (di): Bright Cyan (01;96)
 
--- Option B: Cyan-ish (easier on eyes)
-'#7eb4ea', -- ansi[4]
-'#89dceb', -- brights[4]
+Symbolic Link (ln): Bright Yellow (01;93)
 
--- Option C: Purple-blue (stylish)
-'#8ba4f9', -- ansi[4]
-'#b4befe', -- brights[4]
+Executable (ex): Bright Green (01;92)
 
--- Option D: Sky blue (maximum visibility)
-'#87ceeb', -- ansi[4]
-'#9dd9f3', -- brights[4]
+Normal File (fi): Bright White (00;97)
 
+Bash
+
+export LS_COLORS='di=01;96:ln=01;93:ex=01;92:fi=00;97'
+
+The "Subtle Magenta" Scheme
+Directory (di): Bright Magenta (01;95)
+
+Symbolic Link (ln): Bright Cyan (01;96)
+
+Executable (ex): Bright Yellow (01;93)
+
+Bash
+
+export LS_COLORS='di=01;95:ln=01;96:ex=01;93'
+
+The "Pure Pop" Scheme
+Directory (di): Bright White (01;97)
+
+Symbolic Link (ln): Bright Yellow (01;93)
+
+Executable (ex): Bright Red (01;91)
+
+Bash
+
+export LS_COLORS='di=01;97:ln=01;93:ex=01;91'
