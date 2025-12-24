@@ -42,6 +42,7 @@ return {
 				"html",
 				"css",
 				"python",
+        "perl", 
 				"markdown",
 				"markdown_inline",
 				"graphql",
