@@ -24,6 +24,7 @@ return {
 		local common_lsp_servers = {
 			"pyrefly",
 			"bashls",
+			"perlnavigator",
 			"jsonls",
 			"yamlls",
 			"emmylua_ls", -- Use EmmyLua on RHEL8 due to GLIBC issues
