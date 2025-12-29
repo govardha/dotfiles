@@ -1,5 +1,6 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
+	branch = "master",
 	event = { "BufReadPre", "BufNewFile" },
 	build = ":TSUpdate",
 	dependencies = {
@@ -42,7 +43,7 @@ return {
 				"html",
 				"css",
 				"python",
-        "perl", 
+				"perl",
 				"markdown",
 				"markdown_inline",
 				"graphql",
