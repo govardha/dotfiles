@@ -25,19 +25,33 @@ return {
       end
     })
 
-    -- Minimal setup (only parser installation directory customization)
+    -- Setup with ensure_installed (only compiles missing parsers)
     treesitter.setup({
       install_dir = vim.fn.stdpath('data') .. '/site',
+      ensure_installed = {
+        "bash",
+        "c",
+        "css",
+        "d2",
+        "dockerfile",
+        "gitignore",
+        "graphql",
+        "html",
+        "javascript",
+        "json",
+        "lua",
+        "markdown",
+        "markdown_inline",
+        "perl",
+        "python",
+        "query",
+        "tsx",
+        "typescript",
+        "vim",
+        "vimdoc",
+        "yaml",
+      },
     })
-
-    -- Install parsers explicitly
-    treesitter.install({
-      "json", "javascript", "typescript", "tsx",
-      "yaml", "html", "css", "python", "perl",
-      "markdown", "markdown_inline", "graphql",
-      "bash", "lua", "vim", "dockerfile",
-      "gitignore", "query", "vimdoc", "c", "d2",
-    }, { summary = false })
 
     -- Enable syntax highlighting via Neovim's native API
     vim.api.nvim_create_autocmd('FileType', {
@@ -49,7 +63,7 @@ return {
       end,
     })
 
-    -- Enable indentation (optional)
+    -- Enable indentation
     vim.api.nvim_create_autocmd('FileType', {
       pattern = '*',
       callback = function()
@@ -57,7 +71,7 @@ return {
       end,
     })
 
-    -- Incremental selection (still works via setup)
+    -- Incremental selection
     vim.api.nvim_create_autocmd('FileType', {
       pattern = '*',
       callback = function()
