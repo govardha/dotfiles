@@ -127,51 +127,45 @@ function M.get_nodes()
 			separator = true,
 		})
 		table.insert(nodes, {
-			name = "rinku-depot",
+			name = "rd-ts",
+			ssh_config_alias = "rd",
+			ssh_cmd = ssh_cmd,
+		})
+		table.insert(nodes, {
+			name = "rd2-ts",
+			ssh_config_alias = "rd2",
+			ssh_cmd = ssh_cmd,
+		})
+		table.insert(nodes, {
+			name = "rd",
 			host = "rinku-depot.vadai.org",
 			user = "ubuntu",
 			ssh_cmd = ssh_cmd,
 		})
 		table.insert(nodes, {
-			name = "rinku-depot-ts",
-			host = "rinku-depot.pigeon-hamlet.ts.net",
-			user = "ubuntu",
-			ssh_cmd = ssh_cmd,
-		})
-		table.insert(nodes, {
-			name = "rinku-depot2",
-			host = "rinku-depot2.vadai.org",
-			user = "ubuntu",
-			ssh_cmd = ssh_cmd,
-		})
-		table.insert(nodes, {
-			name = "rinku-depot2-ts",
-			host = "rinku-depot2.pigeon-hamlet.ts.net",
+			name = "rd",
+			host = "rinku-depot.vadai.org",
 			user = "ubuntu",
 			ssh_cmd = ssh_cmd,
 		})
 		table.insert(nodes, {
 			name = "bala-depot",
-			host = "bala-depot.pigeon-hamlet.ts.net",
-			user = "ubuntu",
+			ssh_config_alias = "bala",
 			ssh_cmd = ssh_cmd,
 		})
 		table.insert(nodes, {
 			name = "venky-depot",
-			host = "venky-depot.pigeon-hamlet.ts.net",
-			user = "ubuntu",
+			ssh_config_alias = "venky",
 			ssh_cmd = ssh_cmd,
 		})
 		table.insert(nodes, {
 			name = "imac-ubuntu-ts",
-			host = "imac-ubuntu.pigeon-hamlet.ts.net",
-			user = "govardha",
+			ssh_config_alias = "imac-ubuntu",
 			ssh_cmd = ssh_cmd,
 		})
 		table.insert(nodes, {
 			name = "what",
-			host = "olive.whatbox.ca",
-			user = "gundan",
+			ssh_config_alias = "what",
 			ssh_cmd = ssh_cmd,
 		})
 	end
