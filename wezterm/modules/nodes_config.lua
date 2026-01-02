@@ -128,7 +128,7 @@ function M.get_nodes()
 		})
 		table.insert(nodes, {
 			name = "rinku-depot",
-			host = "rinku-depot",
+			host = "rinku-depot.vadai.org",
 			user = "ubuntu",
 			ssh_cmd = ssh_cmd,
 		})
@@ -140,7 +140,7 @@ function M.get_nodes()
 		})
 		table.insert(nodes, {
 			name = "rinku-depot2",
-			host = "rinku-depot2",
+			host = "rinku-depot2.vadai.org",
 			user = "ubuntu",
 			ssh_cmd = ssh_cmd,
 		})
@@ -165,13 +165,13 @@ function M.get_nodes()
 		table.insert(nodes, {
 			name = "imac-ubuntu-ts",
 			host = "imac-ubuntu.pigeon-hamlet.ts.net",
-			user = "ubuntu",
+			user = "govardha",
 			ssh_cmd = ssh_cmd,
 		})
 		table.insert(nodes, {
 			name = "what",
-			host = "what",
-			user = "ubuntu",
+			host = "olive.whatbox.ca",
+			user = "gundan",
 			ssh_cmd = ssh_cmd,
 		})
 	end
