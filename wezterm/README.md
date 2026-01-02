@@ -7,6 +7,7 @@ Modular WezTerm configuration with centralized node management, tmux-style keybi
 - [Directory Structure](#directory-structure)
 - [Configuration Files](#configuration-files)
 - [Node Management](#node-management)
+- [Workspaces](#workspaces)
 - [Keybindings](#keybindings)
 - [Environment Detection](#environment-detection)
 - [Customization](#customization)
@@ -25,10 +26,10 @@ Modular WezTerm configuration with centralized node management, tmux-style keybi
 │   ├── keybindings.lua         # Custom keybindings and leader key
 │   ├── misc.lua                # Miscellaneous settings (paste behavior, etc.)
 │   ├── mouse.lua               # Mouse bindings (triple-click, right-click)
-│   ├── nodes_config.lua        # ⭐ Central node/server configuration
+│   ├── nodes_config.lua        # ⭐ Central node/server configuration (auto-parsed from SSH config)
 │   ├── platform_specific.lua   # OS-specific settings and launch menu
 │   ├── ssh_utils.lua           # SSH domain configuration (currently disabled)
-│   └── startup.lua             # Auto-workspace creation on launch
+│   └── startup.lua             # 🚀 Auto-workspace creation on launch
 └── plugins/
     └── wez-tmux/               # Tmux-style keybindings plugin
         └── plugin/
@@ -54,36 +55,67 @@ Main configuration file that:
 ```lua
 -- Disabled to prevent SSH config auto-discovery
 -- config.ssh_domains = wezterm.default_ssh_domains()
+
+-- Enable auto-workspace creation (currently disabled)
+-- local startup = safe_require("modules.startup")
+-- startup.apply(config)
 ```
 
 #### `modules/nodes_config.lua` ⭐
 
-**Single source of truth for all SSH nodes/servers.**
+**Automatically parses your `~/.ssh/config` and organizes nodes into groups.**
 
 Provides three main functions:
 
-- `get_nodes()` - Returns list of nodes based on environment
+- `get_nodes()` - Returns list of nodes based on environment (parsed from SSH config)
 - `get_launch_menu_entries()` - Generates launch menu entries
 - `spawn_node_tab(window, node)` - Creates a new tab with auto-naming
 
-**Node Structure:**
+**Group Configuration (customize in `get_group_config()`):**
+
+For **Home/macOS**:
 
 ```lua
 {
-    name = "vpn",                           -- Display name (becomes tab title)
-    host = "vpn.pigeon-hamlet.ts.net",      -- Hostname or IP
-    user = "ubuntu",                         -- SSH username
-    ssh_cmd = "/path/to/ssh"                -- SSH executable path
+    label = "--- VPN Nodes ---",
+    pattern = "^vpn%d*$",  -- Matches: vpn, vpn2, vpn3, ..., vpn9
 }
-
--- Separators:
-{ label = "--- VPN Nodes ---", separator = true }
+{
+    label = "--- Depot Nodes ---",
+    explicit = { "rd", "rd2", "bala", "venky", "mikelee" },
+}
 ```
 
-**Environment-Specific Nodes:**
+For **Work Windows**:
 
-- **Work Windows**: Production gateway nodes (c1, c2, n1, n2) + BDS workstations
-- **Home Windows/macOS**: VPN servers + Depot nodes
+```lua
+{
+    label = "--- Prod GW ---",
+    pattern = "^[cn]%d+$",  -- Matches: c1, c2, n1, n2
+}
+{
+    label = "--- BDS Workstations ---",
+    pattern = "^bds%d+$",  -- Matches: bds16, bds17, bds18...
+}
+```
+
+**How It Works:**
+
+1. Reads your `~/.ssh/config` file
+2. Extracts all `Host` entries (ignoring wildcards like `i-*`)
+3. Groups them using patterns or explicit lists you define
+4. Automatically appears in launcher and auto-workspaces
+
+**Adding New Nodes:** Just add to your `~/.ssh/config`:
+
+```ssh-config
+Host vpn10
+    HostName vpn10.vadai.org
+    User ubuntu
+    IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+```
+
+Reload WezTerm → `vpn10` automatically appears in VPN Nodes group!
 
 ---
 
@@ -111,9 +143,7 @@ Tab and status bar formatting:
 
 Custom keybindings:
 
-- **Alt+L**: Show launcher menu
-- **Leader+,**: Rename current tab
-- **Leader Key**: Ctrl+B (configured for tmux compatibility)
+- **Leader Key**: Ctrl+B (⌃B on macOS) - configured for tmux compatibility
 - Loads wez-tmux plugin for tmux-style bindings
 
 #### `modules/misc.lua`
@@ -135,65 +165,382 @@ OS and environment-specific configuration:
 
 - **Work Windows**: Custom background, msys2 shell paths, work node entries
 - **Home Windows**: Home shell paths, home node entries
-- **macOS**: macOS-specific settings, home node entries
+- **macOS**: macOS-specific settings, home node entries, Homebrew bash as default shell
 - Builds launch menu from `nodes_config.lua`
 
-#### `modules/startup.lua`
+#### `modules/startup.lua` 🚀
 
-Auto-workspace creation on launch (optional):
+**Auto-workspace creation on launch** (optional, currently disabled by default)
 
-- Creates a "nodes" workspace
-- First tab: "local" (bash shell)
-- Subsequent tabs: One per node from `nodes_config.lua`, auto-named
-- **Currently disabled** in `wezterm.lua` (commented out)
+Creates workspaces automatically when WezTerm starts, with SSH connections pre-configured.
 
-**To enable auto-workspaces**, uncomment in `wezterm.lua`:
-
-```lua
-local startup = safe_require("modules.startup")
--- ...
-startup.apply(config)
-```
+**Currently disabled** in `wezterm.lua`. See [Workspaces](#workspaces) section for how to enable and customize.
 
 ---
 
 ## Node Management
 
-### Adding New Nodes
+### How Nodes Are Discovered
 
-Edit `modules/nodes_config.lua` in the appropriate environment section:
+Nodes are **automatically parsed from your `~/.ssh/config`** file. No hardcoding required!
+
+### Group Patterns
+
+Edit `modules/nodes_config.lua` → `get_group_config()` to customize grouping:
+
+**Pattern Syntax:**
+| Pattern | Matches | Example |
+|---------|---------|---------|
+| `^vpn%d*$` | vpn + optional digits | vpn, vpn2, vpn9 |
+| `^vpn%d+$` | vpn + required digits | vpn2, vpn9 (NOT vpn) |
+| `^bds%d+$` | bds + digits | bds16, bds17 |
+| `^[cn]%d+$` | c or n + digits | c1, c2, n1, n2 |
+| `depot` | Contains "depot" | rinku-depot, bala-depot |
+
+**Explicit Lists:**
 
 ```lua
--- Example: Adding a new work node
-if env.is_work_windows then
-    -- Existing nodes...
-
-    table.insert(nodes, {
-        name = "bds16",
-        host = "bds16.your-domain.com",
-        user = os.getenv("USERNAME"),
-        ssh_cmd = ssh_cmd
-    })
-end
+{
+    label = "--- Special Hosts ---",
+    explicit = { "what", "imac-ubuntu" },
+}
 ```
-
-### Node Display Order
-
-Nodes appear in **launch menu** and **auto-created tabs** in the exact order they're added to the `nodes` table in `nodes_config.lua`.
 
 ### Accessing Nodes
 
-Two methods:
+**Method 1: Command Palette** (Always Available)
 
-1. **Launch Menu** (Alt+L):
-   - Shows all nodes from `nodes_config.lua`
-   - Opens connection in current tab or new tab
-   - Tabs are auto-named with node name
+```
+⌃⇧P (Ctrl+Shift+P)    → Opens command palette
+Type: "launcher"       → Filters to launcher
+Enter                  → Shows your grouped nodes
+```
 
-2. **Auto-Workspace** (startup.lua - if enabled):
-   - Creates tabs for all nodes on WezTerm launch
-   - First tab: "local" shell
-   - Rest: One tab per node, auto-named
+**Method 2: Auto-Workspaces** (If Enabled)
+
+- See [Workspaces](#workspaces) section below
+
+---
+
+## Workspaces
+
+### What Are Workspaces?
+
+Workspaces are **virtual desktop environments** for terminal sessions. Think of them like tmux sessions - each workspace can contain multiple tabs and panes, organized by context.
+
+**Use Cases:**
+
+- **By Environment**: prod, staging, dev workspaces
+- **By Project**: project-x, project-y workspaces
+- **By Function**: monitoring, deployment, debugging workspaces
+
+**Current Status:** Auto-workspace creation is **disabled by default**. You can create workspaces manually or enable auto-creation.
+
+---
+
+### Manual Workspace Management
+
+#### Creating Workspaces Manually
+
+**Method 1: Command Palette**
+
+```
+⌃⇧P                          → Command palette
+Type: "Switch To Workspace"  → Select command
+Type: "prod"                 → Enter workspace name
+Enter                        → Creates and switches to workspace
+```
+
+**Method 2: Tmux-Style (Leader Key)**
+
+```
+⌃B s     → Shows existing workspaces (select to switch)
+⌃B $     → Rename current workspace
+⌃B (     → Previous workspace
+⌃B )     → Next workspace
+```
+
+#### Populating Workspaces Manually
+
+Once in a workspace:
+
+```
+⌃⇧P → "launcher" → Select node   # Spawn SSH connection
+⌃B c                              # New local tab
+⌃B %                              # Split horizontally
+⌃B "                              # Split vertically
+⌃B ,                              # Rename tab
+```
+
+**Example Manual Workflow:**
+
+```bash
+# Create prod workspace
+⌃⇧P → "Switch To Workspace" → "prod"
+
+# Add tabs
+⌃⇧P → "launcher" → "c1"     # Tab 1: c1 gateway
+⌃⇧P → "launcher" → "c2"     # Tab 2: c2 gateway
+⌃B c                         # Tab 3: local shell
+⌃B ,                         # Rename to "local"
+
+# Create dev workspace
+⌃⇧P → "Switch To Workspace" → "dev"
+# ... add dev nodes ...
+
+# Switch between them
+⌃B s → Select "prod" or "dev"
+```
+
+---
+
+### Auto-Workspace Creation (Advanced)
+
+**Goal:** Automatically create workspaces with SSH connections on WezTerm startup.
+
+#### Step 1: Enable startup.lua
+
+In `wezterm.lua`, uncomment these lines:
+
+```lua
+-- Load modules
+local startup = safe_require("modules.startup")  -- UNCOMMENT THIS
+
+-- ... later ...
+
+-- Apply modules to configuration
+startup.apply(config)  -- UNCOMMENT THIS
+```
+
+#### Step 2: Understand Default Behavior
+
+With `startup.lua` enabled, **one workspace** is created on launch:
+
+**Workspace: "nodes"**
+
+- Tab 1: "local" (your shell)
+- Tab 2+: One tab per node from your SSH config (auto-named)
+
+**Example (Home/macOS):**
+
+```
+Workspace: nodes
+├── [local]        # Local bash shell
+├── [vpn]          # ssh vpn
+├── [vpn2]         # ssh vpn2
+├── [vpn3]         # ssh vpn3
+├── [rd]           # ssh rd
+├── [rd2]          # ssh rd2
+├── [what]         # ssh what
+└── [imac-ubuntu]  # ssh imac-ubuntu
+```
+
+#### Step 3: Customize Multiple Workspaces
+
+To create **multiple workspaces** with specific nodes, edit `modules/startup.lua`:
+
+**Example: Create "vpn" and "depot" workspaces**
+
+```lua
+function M.setup_workspaces(env_info)
+	local is_macos = env_info.is_home_osx
+	local is_home_windows = env_info.is_home_windows
+	local is_work_windows = env_info.is_work_windows
+
+	-- Get all nodes
+	local all_nodes = nodes_config.get_nodes()
+
+	if is_macos or is_home_windows then
+		-- Create VPN workspace
+		local _, _, vpn_window = mux.spawn_window({
+			workspace = "vpn",
+			args = is_home_windows and {
+				"cmd.exe",
+				"/k",
+				"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+			} or nil,
+		})
+		vpn_window:active_tab():set_title("local")
+
+		-- Add only VPN nodes
+		for _, node in ipairs(all_nodes) do
+			if not node.separator and node.name:match("^vpn%d*$") then
+				nodes_config.spawn_node_tab(vpn_window, node)
+			end
+		end
+
+		-- Create Depot workspace
+		local _, _, depot_window = mux.spawn_window({
+			workspace = "depot",
+			args = is_home_windows and {
+				"cmd.exe",
+				"/k",
+				"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+			} or nil,
+		})
+		depot_window:active_tab():set_title("local")
+
+		-- Add depot nodes
+		local depot_names = { "rd", "rd2", "bala", "venky", "mikelee" }
+		for _, node in ipairs(all_nodes) do
+			if not node.separator then
+				for _, depot_name in ipairs(depot_names) do
+					if node.name == depot_name then
+						nodes_config.spawn_node_tab(depot_window, node)
+						break
+					end
+				end
+			end
+		end
+
+		-- Set active workspace
+		mux.set_active_workspace("vpn")
+		vpn_window:gui_window():set_position(200, 100)
+
+	elseif is_work_windows then
+		-- Work: Create "prod" workspace with gateway nodes
+		local _, _, prod_window = mux.spawn_window({
+			workspace = "prod",
+			args = {
+				"cmd.exe",
+				"/k",
+				"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+			},
+		})
+		prod_window:active_tab():set_title("local")
+
+		-- Add only prod gateway nodes (c1, c2, n1, n2)
+		for _, node in ipairs(all_nodes) do
+			if not node.separator and node.name:match("^[cn]%d+$") then
+				nodes_config.spawn_node_tab(prod_window, node)
+			end
+		end
+
+		mux.set_active_workspace("prod")
+		prod_window:gui_window():set_position(200, 100)
+	end
+end
+```
+
+**Result:**
+
+- **Home/macOS**: Two workspaces ("vpn" with VPN nodes, "depot" with depot nodes)
+- **Work**: One workspace ("prod" with c1, c2, n1, n2)
+
+#### Step 4: Pattern-Based Filtering
+
+Use Lua patterns to filter nodes dynamically:
+
+```lua
+-- Only nodes matching pattern
+for _, node in ipairs(all_nodes) do
+	if not node.separator and node.name:match("^vpn%d*$") then
+		-- Matches: vpn, vpn2, vpn3, etc.
+		nodes_config.spawn_node_tab(window, node)
+	end
+end
+
+-- Specific node names
+local target_nodes = { "rd", "rd2", "bala" }
+for _, node in ipairs(all_nodes) do
+	if not node.separator then
+		for _, target in ipairs(target_nodes) do
+			if node.name == target then
+				nodes_config.spawn_node_tab(window, node)
+				break
+			end
+		end
+	end
+end
+
+-- Nodes containing substring
+for _, node in ipairs(all_nodes) do
+	if not node.separator and node.name:match("depot") then
+		-- Matches: rinku-depot, bala-depot, etc.
+		nodes_config.spawn_node_tab(window, node)
+	end
+end
+```
+
+#### Step 5: Window Positioning
+
+Position multiple workspace windows:
+
+```lua
+-- VPN workspace window
+vpn_window:gui_window():set_position(200, 100)
+
+-- Depot workspace window (doesn't auto-show, just positioned)
+depot_window:gui_window():set_position(800, 100)
+
+-- Set which one shows first
+mux.set_active_workspace("vpn")
+```
+
+---
+
+### Workspace Best Practices
+
+**1. Don't Create Too Many Auto-Workspaces**
+
+- 2-3 workspaces max on startup
+- Create others manually as needed
+
+**2. Group by Context, Not by Node**
+
+- Good: "prod", "dev", "monitoring"
+- Bad: "c1", "c2", "n1" (use tabs instead)
+
+**3. Use Descriptive Names**
+
+```
+⌃B $  → Rename workspace to "prod-troubleshooting"
+⌃B ,  → Rename tab to "c1-logs"
+```
+
+**4. Workspace Persistence**
+
+- Workspaces persist between sessions (until all windows closed)
+- Close all tabs in workspace → workspace removed
+
+**5. Switching is Fast**
+
+```
+⌃B s  → Quick fuzzy search through workspaces
+Type: "pro"
+Enter → Switches to "prod" workspace
+```
+
+---
+
+### Workspace Patterns
+
+**Pattern 1: Environment-Based**
+
+```
+Workspaces:
+├── prod     → c1, c2, n1, n2
+├── staging  → staging nodes
+└── dev      → dev nodes
+```
+
+**Pattern 2: Function-Based**
+
+```
+Workspaces:
+├── ssh      → All SSH connections
+├── local    → Local development
+└── logs     → Monitoring dashboards
+```
+
+**Pattern 3: Project-Based**
+
+```
+Workspaces:
+├── project-x   → project-x dev/staging/prod
+├── project-y   → project-y environments
+└── oncall      → On-call dashboards/alerts
+```
 
 ---
 
@@ -201,84 +548,82 @@ Two methods:
 
 ### Standard WezTerm Bindings
 
-| Key            | Action             |
-| -------------- | ------------------ |
-| `Alt+L`        | Open launcher menu |
-| `Ctrl+Shift+P` | Command palette    |
-| `Ctrl+Shift+T` | New tab            |
-| `Ctrl+Shift+W` | Close current tab  |
+| Key   | Action            |
+| ----- | ----------------- |
+| `⌃⇧P` | Command palette   |
+| `⌃⇧T` | New tab           |
+| `⌃⇧W` | Close current tab |
+
+_(⌃ = Control on macOS)_
 
 ### Tmux-Style Bindings (wez-tmux plugin)
 
-**Leader Key**: `Ctrl+B` (modified from default)
+**Leader Key**: `⌃B` (Control+B)
 
 #### Workspaces
 
-| Key        | Action                          |
-| ---------- | ------------------------------- |
-| `Ctrl+B $` | Rename workspace                |
-| `Ctrl+B s` | Select workspace (fuzzy picker) |
-| `Ctrl+B (` | Previous workspace              |
-| `Ctrl+B )` | Next workspace                  |
+| Key    | Action                          |
+| ------ | ------------------------------- |
+| `⌃B $` | Rename workspace                |
+| `⌃B s` | Select workspace (fuzzy picker) |
+| `⌃B (` | Previous workspace              |
+| `⌃B )` | Next workspace                  |
 
 #### Tabs
 
-| Key          | Action                        |
-| ------------ | ----------------------------- |
-| `Ctrl+B c`   | Create new tab                |
-| `Ctrl+B ,`   | Rename tab                    |
-| `Ctrl+B &`   | Close tab (with confirmation) |
-| `Ctrl+B p`   | Previous tab                  |
-| `Ctrl+B n`   | Next tab                      |
-| `Ctrl+B l`   | Last active tab               |
-| `Ctrl+B 1-9` | Switch to tab N               |
+| Key      | Action                        |
+| -------- | ----------------------------- |
+| `⌃B c`   | Create new tab                |
+| `⌃B ,`   | Rename tab                    |
+| `⌃B &`   | Close tab (with confirmation) |
+| `⌃B p`   | Previous tab                  |
+| `⌃B n`   | Next tab                      |
+| `⌃B l`   | Last active tab               |
+| `⌃B 1-9` | Switch to tab N               |
 
 #### Panes (Splits)
 
-| Key              | Action                         |
-| ---------------- | ------------------------------ |
-| `Ctrl+B %`       | Split horizontally             |
-| `Ctrl+B "`       | Split vertically               |
-| `Ctrl+B {`       | Rotate panes counter-clockwise |
-| `Ctrl+B }`       | Rotate panes clockwise         |
-| `Ctrl+B ←/→/↑/↓` | Navigate panes                 |
-| `Ctrl+B q`       | Pane selection mode            |
-| `Ctrl+B z`       | Toggle pane zoom               |
-| `Ctrl+B !`       | Move pane to new tab           |
-| `Ctrl+B x`       | Close pane (with confirmation) |
-| `Ctrl+B Ctrl+←`  | Resize pane left (5 cells)     |
-| `Ctrl+B Ctrl+→`  | Resize pane right (5 cells)    |
-| `Ctrl+B Ctrl+↑`  | Resize pane up (5 cells)       |
-| `Ctrl+B Ctrl+↓`  | Resize pane down (5 cells)     |
+| Key           | Action                         |
+| ------------- | ------------------------------ |
+| `⌃B %`        | Split horizontally             |
+| `⌃B "`        | Split vertically               |
+| `⌃B {`        | Rotate panes counter-clockwise |
+| `⌃B }`        | Rotate panes clockwise         |
+| `⌃B ←/→/↑/↓`  | Navigate panes                 |
+| `⌃B q`        | Pane selection mode            |
+| `⌃B z`        | Toggle pane zoom               |
+| `⌃B !`        | Move pane to new tab           |
+| `⌃B x`        | Close pane (with confirmation) |
+| `⌃B ⌃←/→/↑/↓` | Resize pane (5 cells)          |
 
 #### Copy Mode
 
-| Key        | Action                                 |
-| ---------- | -------------------------------------- |
-| `Ctrl+B [` | Enter copy mode                        |
-| `Escape`   | Clear selection / Clear pattern / Exit |
-| `v`        | Cell selection                         |
-| `Shift+V`  | Line selection                         |
-| `Ctrl+V`   | Block selection                        |
-| `h/j/k/l`  | Vim-style navigation                   |
-| `w/b/e`    | Word navigation                        |
-| `0/$`      | Line start/end                         |
-| `g/G`      | Top/bottom of scrollback               |
-| `Ctrl+B`   | Page up                                |
-| `Ctrl+F`   | Page down                              |
-| `Ctrl+U`   | Half page up                           |
-| `Ctrl+D`   | Half page down                         |
-| `/`        | Search forward                         |
-| `?`        | Search backward                        |
-| `n/N`      | Next/previous match                    |
-| `y`        | Copy and exit                          |
+| Key       | Action                                 |
+| --------- | -------------------------------------- |
+| `⌃B [`    | Enter copy mode                        |
+| `Escape`  | Clear selection / Clear pattern / Exit |
+| `v`       | Cell selection                         |
+| `⇧V`      | Line selection                         |
+| `⌃V`      | Block selection                        |
+| `h/j/k/l` | Vim-style navigation                   |
+| `w/b/e`   | Word navigation                        |
+| `0/$`     | Line start/end                         |
+| `g/G`     | Top/bottom of scrollback               |
+| `⌃B`      | Page up                                |
+| `⌃F`      | Page down                              |
+| `⌃U`      | Half page up                           |
+| `⌃D`      | Half page down                         |
+| `/`       | Search forward                         |
+| `?`       | Search backward                        |
+| `n/N`     | Next/previous match                    |
+| `y`       | Copy and exit                          |
 
 #### Misc
 
-| Key             | Action               |
-| --------------- | -------------------- |
-| `Ctrl+B Space`  | Quick select mode    |
-| `Ctrl+B Ctrl+B` | Send Ctrl+B to shell |
+| Key        | Action            |
+| ---------- | ----------------- |
+| `⌃B Space` | Quick select mode |
+| `⌃B ⌃B`    | Send ⌃B to shell  |
 
 ---
 
@@ -290,16 +635,30 @@ Configuration automatically detects:
 
 - **Work**: `USERDOMAIN == "WORKDOMAIN"`
   - Uses `C:/DevSoftware/msys64/usr/bin/ssh.exe`
-  - Loads work nodes (gateways, BDS workstations)
+  - Loads work nodes from SSH config (gateways, BDS workstations)
   - Custom work background image
 - **Home**: All other Windows environments
   - Uses `C:/Apps/msys64/usr/bin/ssh.exe`
-  - Loads home nodes (VPN servers, depot)
+  - Loads home nodes from SSH config (VPN servers, depot)
 
 ### macOS
 
-- Uses system `ssh`
-- Loads home nodes (VPN servers, depot)
+- Uses system `ssh` (or Homebrew ssh if in PATH)
+- Uses Homebrew bash as default shell: `/opt/homebrew/bin/bash`
+- Loads home nodes from SSH config (VPN servers, depot)
+- Uses 1Password SSH agent for passwordless authentication
+
+### Authentication
+
+**Home/macOS:**
+
+- 1Password SSH Agent (configured in `~/.ssh/config`)
+- Passwordless authentication via SSH keys stored in 1Password
+
+**Work:**
+
+- Traditional SSH keys or password authentication
+- No 1Password support
 
 ---
 
@@ -330,15 +689,15 @@ Edit `modules/keybindings.lua`:
 config.leader = { key = "b", mods = "CTRL" }  -- Change key or modifier
 ```
 
-### Add Custom Keybindings
+### Customize Node Groups
 
-Edit `modules/keybindings.lua`, add to `config.keys`:
+Edit `modules/nodes_config.lua` → `get_group_config()`:
 
 ```lua
+-- Add a new group
 {
-    key = "t",
-    mods = "ALT",
-    action = act.SpawnTab("CurrentPaneDomain")
+    label = "--- My Custom Group ---",
+    pattern = "^mypattern%d+$",  -- or use explicit list
 }
 ```
 
@@ -359,7 +718,7 @@ In `wezterm.lua`, uncomment:
 config.ssh_domains = wezterm.default_ssh_domains()
 ```
 
-**Note**: This will show ALL hosts from `~/.ssh/config` in the Command Palette.
+**Note**: This will show ALL hosts from `~/.ssh/config` in Command Palette.
 
 ---
 
@@ -367,7 +726,7 @@ config.ssh_domains = wezterm.default_ssh_domains()
 
 ### Launch Menu Shows Too Many Hosts
 
-**Problem**: `Ctrl+Shift+P` shows many extra hosts from SSH config
+**Problem**: Command palette shows many extra hosts from SSH config
 
 **Solution**: Ensure this line is commented in `wezterm.lua`:
 
@@ -381,8 +740,8 @@ config.ssh_domains = wezterm.default_ssh_domains()
 
 **Checklist**:
 
-1. Verify `modules/nodes_config.lua` exists
-2. Check node definitions for your environment in `get_nodes()`
+1. Verify nodes exist in `~/.ssh/config`
+2. Check patterns in `nodes_config.lua` → `get_group_config()`
 3. Reload WezTerm configuration
 
 ### Startup Auto-Tabs Not Working
@@ -396,50 +755,123 @@ local startup = safe_require("modules.startup")
 startup.apply(config)
 ```
 
+### Wrong Bash Version (macOS)
+
+**Problem**: `bash --version` shows 3.2.57 instead of 5.3+
+
+**Solution**: Add to top of `~/.bashrc`:
+
+```bash
+# Setup Homebrew PATH
+eval "$(/opt/homebrew/bin/brew shellenv)"
+```
+
+And verify `platform_specific.lua` has:
+
+```lua
+config.default_prog = { "/opt/homebrew/bin/bash", "-l" }
+```
+
 ### SSH Connection Fails
 
 **Problem**: Tab opens but connection fails
 
 **Checklist**:
 
-1. Verify hostname is correct in `nodes_config.lua`
-2. Test SSH from command line: `ssh user@host`
-3. Check SSH keys are loaded
+1. Test SSH from command line: `ssh <node-alias>`
+2. Verify node exists in `~/.ssh/config`
+3. Check SSH keys (1Password on macOS, ssh-add on other systems)
 4. Verify firewall/VPN connectivity
 
-### Tmux Keybindings Not Working
+### Workspaces Not Persisting
 
-**Problem**: `Ctrl+B` doesn't trigger tmux-style bindings
+**Problem**: Workspaces disappear on restart
 
-**Checklist**:
+**Cause**: Workspaces are removed when all tabs are closed
 
-1. Verify `plugins/wez-tmux/plugin/init.lua` exists
-2. Check leader key in `modules/keybindings.lua`:
-
-```lua
-   config.leader = { key = "b", mods = "CTRL" }
-```
-
-3. Ensure plugin is loaded in `keybindings.lua`:
-
-```lua
-   require("plugins.wez-tmux.plugin").apply_to_config(config, {})
-```
+**Solution**: Keep at least one tab open in each workspace you want to preserve
 
 ### Tab Titles Not Auto-Naming
 
 **Problem**: Tabs show hostname instead of configured name
 
-**Solution**: Verify `spawn_node_tab()` is being called (in `startup.lua` or when launching from menu)
+**Solution**: Verify using `nodes_config.spawn_node_tab()` instead of manual spawn
 
-### Module Load Errors
+### "switcher: command not found" (macOS)
 
-**Problem**: Error about missing module
+**Problem**: Error when starting bash
 
-**Solution**: Check file paths:
+**Solution**: Add to `~/.bashrc`:
 
-- All modules should be in `~/.config/wezterm/modules/`
-- Plugin should be in `~/.config/wezterm/plugins/wez-tmux/plugin/init.lua`
+```bash
+# Only load switcher if it exists
+if command -v switcher &> /dev/null; then
+    source <(switcher init bash)
+fi
+```
+
+---
+
+## Quick Start Guide
+
+### First Time Setup
+
+1. **Clone this repo to `~/.config/wezterm/`**
+
+```bash
+   git clone <repo-url> ~/.config/wezterm
+```
+
+2. **Ensure your SSH config is set up**
+
+```bash
+   vi ~/.ssh/config
+   # Add your hosts with proper formatting
+```
+
+3. **Customize node groups** (optional)
+
+```bash
+   vi ~/.config/wezterm/modules/nodes_config.lua
+   # Edit get_group_config() to match your node naming
+```
+
+4. **Launch WezTerm**
+   - Nodes auto-populate from SSH config
+   - Use Command Palette (`⌃⇧P` → "launcher") to access
+
+5. **Enable auto-workspaces** (optional)
+
+```bash
+   vi ~/.config/wezterm/wezterm.lua
+   # Uncomment startup lines
+```
+
+### Daily Workflow
+
+**Creating Contexts:**
+
+```
+⌃⇧P → "Switch To Workspace" → "prod"    # Create prod workspace
+⌃⇧P → "launcher" → select nodes          # Add SSH connections
+⌃B c                                      # Add local tabs
+⌃B ,                                      # Rename tabs
+```
+
+**Switching Contexts:**
+
+```
+⌃B s     → Quick workspace switcher
+⌃B ( )   → Previous/Next workspace
+```
+
+**Managing Tabs:**
+
+```
+⌃B 1-9   → Jump to tab
+⌃B c     → New tab
+⌃B ,     → Rename tab
+```
 
 ---
 
@@ -447,11 +879,13 @@ startup.apply(config)
 
 This setup follows these principles:
 
-1. **Single Source of Truth**: All nodes defined in `nodes_config.lua`
-2. **Modular Design**: Each module handles one concern (appearance, keybindings, etc.)
-3. **Environment Aware**: Automatically adapts to work/home and Windows/macOS
-4. **Keyboard Driven**: Tmux-style bindings for efficient terminal multiplexing
-5. **Safe Loading**: `safe_require()` prevents crashes from missing modules
+1. **Auto-Discovery**: Nodes parsed from SSH config, not hardcoded
+2. **Pattern-Based**: Group nodes by naming conventions
+3. **Single Source of Truth**: SSH config is the source, WezTerm reflects it
+4. **Modular Design**: Each module handles one concern
+5. **Environment Aware**: Automatically adapts to work/home and OS
+6. **Keyboard Driven**: Tmux-style bindings for efficient workflow
+7. **Safe Loading**: `safe_require()` prevents crashes from missing modules
 
 ---
 
@@ -460,6 +894,7 @@ This setup follows these principles:
 - [WezTerm Documentation](https://wezfurlong.org/wezterm/)
 - [wez-tmux Plugin](https://github.com/sei40kr/wez-tmux)
 - [Catppuccin Color Scheme](https://github.com/catppuccin/wezterm)
+- [Lua Pattern Reference](https://www.lua.org/manual/5.1/manual.html#5.4.1)
 
 ---
 
