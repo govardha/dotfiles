@@ -89,7 +89,10 @@ function M.apply(config)
 	elseif wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin" then
 		-- macOS Specific Configurations
 		config.font = wezterm.font("JetBrains Mono")
-		table.insert(launch_menu, { label = "terminal", args = { "wezterm ", "cli spawn --new-window" } })
+
+		table.insert(launch_menu, {
+			label = "local shell",
+		})
 
 		-- Add nodes from central config (replaces all the hardcoded node entries)
 		local node_entries = nodes_config.get_launch_menu_entries()
