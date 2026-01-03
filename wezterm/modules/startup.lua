@@ -125,13 +125,16 @@ function M.setup_workspaces(env_info)
 			workspace = "vpns",
 		})
 		local _, second_pane, _ = vpn_window:spawn_tab({
-			args = { "ssh", "ubuntu@vpn.pigeon-hamlet.ts.net" },
+			args = { "ssh", "ubuntu@vpn" },
 		})
 		local _, third_pane, _ = vpn_window:spawn_tab({
-			args = { "ssh", "ubuntu@vpn2.pigeon-hamlet.ts.net" },
+			args = { "ssh", "ubuntu@vpn2" },
 		})
 		local _, fourth_pane, _ = vpn_window:spawn_tab({
-			args = { "ssh", "ubuntu@vpn-x86.pigeon-hamlet.ts.net" },
+			args = { "ssh", "ubuntu@vpn3" },
+		})
+		local _, fifth_pane, _ = vpn_window:spawn_tab({
+			args = { "ssh", "ubuntu@vpn4" },
 		})
 
 		-- Depot workspace setup with SSH connections
