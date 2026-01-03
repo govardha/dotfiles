@@ -74,7 +74,7 @@ function M.apply(config)
 				args = {
 					"cmd.exe ",
 					"/k",
-					"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -msys2 -shell bash",
+					"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -msys2 -shell bash",
 				},
 			})
 			table.insert(launch_menu, {
@@ -82,7 +82,7 @@ function M.apply(config)
 				args = {
 					"cmd.exe ",
 					"/k",
-					"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+					"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
 				},
 			})
 		end
