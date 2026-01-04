@@ -24,7 +24,6 @@ local function get_ssh_command(is_windows)
 	if is_windows then
 		local msys_paths = {
 			"C:/DevSoftware/msys64/usr/bin/ssh.exe",
-			"C:/Apps/msys64/usr/bin/ssh.exe",
 		}
 		for _, path in ipairs(msys_paths) do
 			local f = io.open(path, "r")

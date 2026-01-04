@@ -45,21 +45,21 @@ function M.setup_workspaces(env_info)
 			args = {
 				"cmd.exe ",
 				"/k",
-				"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+				"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
 			},
 		})
 		local _, second_pane, _ = vpn_window:spawn_tab({
 			args = {
 				"cmd.exe ",
 				"/k",
-				"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+				"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
 			},
 		})
 		local _, third_pane, _ = vpn_window:spawn_tab({
 			args = {
 				"cmd.exe ",
 				"/k",
-				"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+				"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
 			},
 		})
 
@@ -69,14 +69,14 @@ function M.setup_workspaces(env_info)
 			args = {
 				"cmd.exe ",
 				"/k",
-				"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+				"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
 			},
 		})
 		local _, second_pane, _ = depot_window:spawn_tab({
 			args = {
 				"cmd.exe ",
 				"/k",
-				"C:\\Apps\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+				"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
 			},
 		})
 

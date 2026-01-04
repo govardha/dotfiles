@@ -58,7 +58,12 @@ function M.apply(config)
 			table.insert(launch_menu, { label = "---" })
 		else
 			-- Windows Home Environment
-			config.default_prog = { "cmd.exe" }
+			config.default_prog = {
+				"cmd.exe",
+				"/k",
+				"C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
+			}
+			-- config.default_prog = { "cmd.exe" }
 			table.insert(launch_menu, { label = "cmd", args = { "cmd.exe" } })
 
 			-- Add nodes from central config (replaces all the hardcoded node entries)
