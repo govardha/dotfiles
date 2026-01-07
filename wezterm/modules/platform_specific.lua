@@ -8,6 +8,8 @@ function M.apply(config)
   local user_name = os.getenv("USERNAME") or os.getenv("USER") or os.getenv("LOGNAME")
   local dom = os.getenv("USERDOMAIN")
   local WORK_DOMAIN_NAME = "MIAMIHOLDINGS"
+  local win_ssh = "C:/Windows/System32/OpenSSH/ssh.exe"
+  local msys_ssh = "C:/msys64/usr/bin/ssh.exe"
 
   -- Initialize launch_menu as an empty table if it's not already defined.
   -- This ensures we can safely insert items.
@@ -30,16 +32,31 @@ function M.apply(config)
 
       config.default_prog = { "cmd.exe" }
       table.insert(launch_menu, { label = "cmd", args = { "cmd.exe" } })
-      table.insert(launch_menu, { label = "cmd", args = { "cmd.exe" } })
-      table.insert(launch_menu, { label = "--- Prod GW ---" })
+      -- Standard Shells
+      table.insert(launch_menu, { label = "Standard CMD", args = { "cmd.exe" } })
+      table.insert(launch_menu, { label = "--- Prod GW (Legacy MAC) ---" })
+
+      -- Define the hosts to loop through to keep it clean
+      local hosts = {
+        { label = "c2-win", host = "dch4i1gws02" },
+        { label = "c1-win", host = "dch4i1gws01" },
+        { label = "n1-win", host = "dny2i1gws01" },
+        { label = "n2-win", host = "dny2i1gws02" },
+      }
+
+      for _, h in ipairs(hosts) do
+        table.insert(launch_menu, {
+          label = h.label,
+          -- Using the specific command structure you asked for
+          args = { win_ssh, "-m", "hmac-sha1", user_name .. "@" .. h.host }
+        })
+      end
+
+      table.insert(launch_menu, { label = "--- Prod GW (MSYS) ---" })
       table.insert(launch_menu, { label = "c2-msys", args = { msys_ssh, user_name .. "@dch4i1gws02" } })
       table.insert(launch_menu, { label = "c1-msys", args = { msys_ssh, user_name .. "@dch4i1gws01" } })
-      table.insert(launch_menu, { label = "n1-msys", args = { msys_ssh, user_name .. "@dny2i1gws01" } })
-      table.insert(launch_menu, { label = "n2-msys", args = { msys_ssh, user_name .. "@dny2i1gws02" } })
-      -- table.insert(launch_menu, { label = "c2-win", args = { win_ssh, user_name .. "@dch4i1gws02" } })
-      -- table.insert(launch_menu, { label = "c1-win", args = { win_ssh, user_name .. "@dch4i1gws01" } })
-      -- table.insert(launch_menu, { label = "n1-win", args = { win_ssh, user_name .. "@dny2i1gws01" } })
-      -- table.insert(launch_menu, { label = "n2-win", args = { win_ssh, user_name .. "@dny2i1gws02" } })
+      table.insert(launch_menu, { label = "c2-msys", args = { msys_ssh, user_name .. "@dny2i1gws02" } })
+      table.insert(launch_menu, { label = "c1-msys", args = { msys_ssh, user_name .. "@dny2i1gws01" } })
 
       -- Add nodes from central config (replaces all the hardcoded node entries)
       -- local node_entries = nodes_config.get_launch_menu_entries()
