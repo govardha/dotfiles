@@ -3,6 +3,7 @@ require("gov.core")
 vim.filetype.add({
   extension = {
     d2 = "d2",
+    locator = "xml",
   },
 })
 
