@@ -50,6 +50,7 @@ return {
         "vim",
         "vimdoc",
         "yaml",
+        "xml",
       },
     })
 

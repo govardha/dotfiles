@@ -119,26 +119,6 @@ return {
       -- Add custom settings here if needed
     })
 
-    -- XML LSP configuration (lemminx)
-    vim.lsp.config("lemminx", {
-      filetypes = { "xml", "xsd", "xsl", "xslt", "svg" },
-      settings = {
-        xml = {
-          format = {
-            enabled = true,
-            splitAttributes = false,
-            joinCDATALines = false,
-            joinCommentLines = false,
-            spaceBeforeEmptyCloseTag = true,
-            preservedNewlines = 2,
-          },
-          validation = {
-            enabled = true,
-          },
-        },
-      },
-    })
-
     -- Bash LSP (bashls) - uses defaults
     -- JSON LSP (jsonls) - uses defaults
     -- YAML LSP (yamlls) - uses defaults

@@ -26,7 +26,6 @@ return {
       "bashls",
       "perlnavigator",
       "jsonls",
-      "lemminx",
       "yamlls",
       "emmylua_ls", -- Use EmmyLua on RHEL8 due to GLIBC issues
       "docker_compose_language_service",
