@@ -9,7 +9,7 @@ function M.apply(config)
   local dom = os.getenv("USERDOMAIN")
   local WORK_DOMAIN_NAME = "MIAMIHOLDINGS"
   local win_ssh = "C:/Windows/System32/OpenSSH/ssh.exe"
-  local msys_ssh = "C:/msys64/usr/bin/ssh.exe"
+  local msys_ssh = "C:/DevSoftware/msys64/usr/bin/ssh.exe"
 
   -- Initialize launch_menu as an empty table if it's not already defined.
   -- This ensures we can safely insert items.
@@ -21,15 +21,6 @@ function M.apply(config)
     -- Windows-specific configurations
     if dom and string.upper(dom) == WORK_DOMAIN_NAME then
       -- Windows Work Environment
-      config.background = {
-        {
-          source = {
-            File = "C:/DevSoftware/WezTerm/images/miax-background.png",
-          },
-          opacity = 0.2,
-        },
-      }
-
       config.default_prog = { "cmd.exe" }
       table.insert(launch_menu, { label = "cmd", args = { "cmd.exe" } })
       -- Standard Shells
