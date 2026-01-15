@@ -14,13 +14,24 @@ return {
     vim.api.nvim_create_autocmd('User', {
       pattern = 'TSUpdate',
       callback = function()
-        require('nvim-treesitter.parsers').d2 = {
+        local parsers = require('nvim-treesitter.parsers')
+
+        parsers.d2 = {
           install_info = {
             url = "https://github.com/ravsii/tree-sitter-d2",
             files = { "src/parser.c" },
             branch = "main",
           },
           filetype = "d2",
+        }
+
+        parsers.jinja2 = {
+          install_info = {
+            url = "https://github.com/cathaysia/tree-sitter-jinja",
+            files = { "src/parser.c" },
+            branch = "v0.10.0",
+          },
+          filetype = "jinja2",
         }
       end
     })
@@ -50,6 +61,7 @@ return {
         "vim",
         "vimdoc",
         "yaml",
+        "jinja2",
         "xml",
       },
     })
