@@ -8,42 +8,59 @@ return {
     "nvim-treesitter/nvim-treesitter-textobjects",
   },
   config = function()
-    local treesitter = require("nvim-treesitter")
+    local ts = require("nvim-treesitter")
 
-    -- Custom parser registration - NEW API using autocmd
-    vim.api.nvim_create_autocmd('User', {
-      pattern = 'TSUpdate',
-      callback = function()
-        local parsers = require('nvim-treesitter.parsers')
-
-        parsers.d2 = {
-          install_info = {
-            url = "https://github.com/ravsii/tree-sitter-d2",
-            files = { "src/parser.c" },
-            branch = "main",
-          },
-          filetype = "d2",
-        }
-
-        parsers.jinja2 = {
-          install_info = {
-            url = "https://github.com/cathaysia/tree-sitter-jinja",
-            files = { "src/parser.c" },
-            branch = "v0.10.0",
-          },
-          filetype = "jinja2",
-        }
-      end
+    -- Setup (minimal config for main branch)
+    ts.setup({
+      highlight = { enable = true },
+      indent = { enable = true },
+      incremental_selection = {
+        enable = true,
+        keymaps = {
+          init_selection = "<C-space>",
+          node_incremental = "<C-space>",
+          scope_incremental = false,
+          node_decremental = "<bs>",
+        },
+      },
     })
 
-    -- Setup with ensure_installed (only compiles missing parsers)
-    treesitter.setup({
-      install_dir = vim.fn.stdpath('data') .. '/site',
-      ensure_installed = {
+    -- Custom parsers
+    local parsers = require("nvim-treesitter.parsers")
+    parsers.d2 = {
+      install_info = {
+        url = "https://github.com/ravsii/tree-sitter-d2",
+        files = { "src/parser.c" },
+        branch = "main",
+      },
+      filetype = "d2",
+    }
+    parsers.jinja2 = {
+      install_info = {
+        url = "https://github.com/cathaysia/tree-sitter-jinja",
+        files = { "src/parser.c" },
+        branch = "v0.10.0",
+      },
+      filetype = "jinja2",
+    }
+
+    require("nvim-ts-autotag").setup({
+      opts = {
+        enable_close = true,
+        enable_rename = true,
+        enable_close_on_slash = false,
+      },
+    })
+
+    -- CRITICAL: Actually install parsers (respects offline mode)
+    local offline_guard = require("gov.core.offline-guard")
+    if offline_guard.is_online() then
+      -- Install parsers on startup (async, non-blocking)
+      -- This is a no-op if already installed
+      ts.install({
         "bash",
         "c",
         "css",
-        "d2",
         "dockerfile",
         "gitignore",
         "graphql",
@@ -61,47 +78,8 @@ return {
         "vim",
         "vimdoc",
         "yaml",
-        "jinja2",
         "xml",
-      },
-    })
-
-    -- Enable syntax highlighting via Neovim's native API
-    vim.api.nvim_create_autocmd('FileType', {
-      pattern = '*',
-      callback = function()
-        local buf = vim.api.nvim_get_current_buf()
-        local lang = vim.bo[buf].filetype
-        pcall(vim.treesitter.start, buf, lang)
-      end,
-    })
-
-    -- Enable indentation
-    vim.api.nvim_create_autocmd('FileType', {
-      pattern = '*',
-      callback = function()
-        vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-      end,
-    })
-
-    -- Incremental selection
-    vim.api.nvim_create_autocmd('FileType', {
-      pattern = '*',
-      callback = function()
-        local opts = { buffer = true, silent = true }
-
-        vim.keymap.set({ 'n', 'x' }, '<C-space>', function()
-          require('nvim-treesitter.incremental_selection').init_selection()
-        end, vim.tbl_extend('force', opts, { desc = 'Init selection' }))
-
-        vim.keymap.set('x', '<C-space>', function()
-          require('nvim-treesitter.incremental_selection').node_incremental()
-        end, vim.tbl_extend('force', opts, { desc = 'Increment selection' }))
-
-        vim.keymap.set('x', '<bs>', function()
-          require('nvim-treesitter.incremental_selection').node_decremental()
-        end, vim.tbl_extend('force', opts, { desc = 'Decrement selection' }))
-      end,
-    })
+      })
+    end
   end,
 }

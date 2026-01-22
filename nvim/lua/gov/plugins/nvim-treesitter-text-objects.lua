@@ -1,101 +1,147 @@
 return {
   "nvim-treesitter/nvim-treesitter-textobjects",
   branch = "main",
-  lazy = true,
+  lazy = false,
+  dependencies = {
+    "nvim-treesitter/nvim-treesitter",
+  },
+  init = function()
+    -- Disable default keymaps (we'll set our own)
+    vim.g.no_plugin_maps = true
+  end,
   config = function()
-    local textobjects = require("nvim-treesitter-textobjects")
-
-    textobjects.setup({
+    -- Setup textobjects config
+    require("nvim-treesitter-textobjects").setup({
       select = {
-        enable = true,
         lookahead = true,
-        keymaps = {
-          ["a="] = { query = "@assignment.outer", desc = "Select outer part of an assignment" },
-          ["i="] = { query = "@assignment.inner", desc = "Select inner part of an assignment" },
-          ["l="] = { query = "@assignment.lhs", desc = "Select left hand side of an assignment" },
-          ["r="] = { query = "@assignment.rhs", desc = "Select right hand side of an assignment" },
-
-          ["a:"] = { query = "@property.outer", desc = "Select outer part of an object property" },
-          ["i:"] = { query = "@property.inner", desc = "Select inner part of an object property" },
-          ["l:"] = { query = "@property.lhs", desc = "Select left part of an object property" },
-          ["r:"] = { query = "@property.rhs", desc = "Select right part of an object property" },
-
-          ["aa"] = { query = "@parameter.outer", desc = "Select outer part of a parameter/argument" },
-          ["ia"] = { query = "@parameter.inner", desc = "Select inner part of a parameter/argument" },
-
-          ["ai"] = { query = "@conditional.outer", desc = "Select outer part of a conditional" },
-          ["ii"] = { query = "@conditional.inner", desc = "Select inner part of a conditional" },
-
-          ["al"] = { query = "@loop.outer", desc = "Select outer part of a loop" },
-          ["il"] = { query = "@loop.inner", desc = "Select inner part of a loop" },
-
-          ["af"] = { query = "@call.outer", desc = "Select outer part of a function call" },
-          ["if"] = { query = "@call.inner", desc = "Select inner part of a function call" },
-
-          ["am"] = { query = "@function.outer", desc = "Select outer part of a method/function definition" },
-          ["im"] = { query = "@function.inner", desc = "Select inner part of a method/function definition" },
-
-          ["ac"] = { query = "@class.outer", desc = "Select outer part of a class" },
-          ["ic"] = { query = "@class.inner", desc = "Select inner part of a class" },
+        selection_modes = {
+          ['@parameter.outer'] = 'v', -- charwise
+          ['@function.outer'] = 'V',  -- linewise
+          ['@class.outer'] = '<c-v>', -- blockwise
         },
-      },
-      swap = {
-        enable = true,
-        swap_next = {
-          ["<leader>na"] = "@parameter.inner",
-          ["<leader>n:"] = "@property.outer",
-          ["<leader>nm"] = "@function.outer",
-        },
-        swap_previous = {
-          ["<leader>pa"] = "@parameter.inner",
-          ["<leader>p:"] = "@property.outer",
-          ["<leader>pm"] = "@function.outer",
-        },
+        include_surrounding_whitespace = false,
       },
       move = {
         enable = true,
         set_jumps = true,
-        goto_next_start = {
-          ["]f"] = { query = "@call.outer", desc = "Next function call start" },
-          ["]m"] = { query = "@function.outer", desc = "Next method/function def start" },
-          ["]c"] = { query = "@class.outer", desc = "Next class start" },
-          ["]i"] = { query = "@conditional.outer", desc = "Next conditional start" },
-          ["]l"] = { query = "@loop.outer", desc = "Next loop start" },
-          ["]s"] = { query = "@local.scope", query_group = "locals", desc = "Next scope" },
-          ["]z"] = { query = "@fold", query_group = "folds", desc = "Next fold" },
-        },
-        goto_next_end = {
-          ["]F"] = { query = "@call.outer", desc = "Next function call end" },
-          ["]M"] = { query = "@function.outer", desc = "Next method/function def end" },
-          ["]C"] = { query = "@class.outer", desc = "Next class end" },
-          ["]I"] = { query = "@conditional.outer", desc = "Next conditional end" },
-          ["]L"] = { query = "@loop.outer", desc = "Next loop end" },
-        },
-        goto_previous_start = {
-          ["[f"] = { query = "@call.outer", desc = "Prev function call start" },
-          ["[m"] = { query = "@function.outer", desc = "Prev method/function def start" },
-          ["[c"] = { query = "@class.outer", desc = "Prev class start" },
-          ["[i"] = { query = "@conditional.outer", desc = "Prev conditional start" },
-          ["[l"] = { query = "@loop.outer", desc = "Prev loop start" },
-        },
-        goto_previous_end = {
-          ["[F"] = { query = "@call.outer", desc = "Prev function call end" },
-          ["[M"] = { query = "@function.outer", desc = "Prev method/function def end" },
-          ["[C"] = { query = "@class.outer", desc = "Prev class end" },
-          ["[I"] = { query = "@conditional.outer", desc = "Prev conditional end" },
-          ["[L"] = { query = "@loop.outer", desc = "Prev loop end" },
-        },
+      },
+      swap = {
+        enable = true,
       },
     })
 
-    -- Correct module path and new API
+    -- Get the modules
+    local select = require("nvim-treesitter-textobjects.select")
+    local move = require("nvim-treesitter-textobjects.move")
+    local swap = require("nvim-treesitter-textobjects.swap")
     local ts_repeat_move = require("nvim-treesitter-textobjects.repeatable_move")
 
-    -- New API: separate functions for next/previous
+    -- SELECT keymaps (your dam, vim, etc.)
+    vim.keymap.set({ "x", "o" }, "a=", function()
+      select.select_textobject("@assignment.outer", "textobjects")
+    end, { desc = "Select outer assignment" })
+    vim.keymap.set({ "x", "o" }, "i=", function()
+      select.select_textobject("@assignment.inner", "textobjects")
+    end, { desc = "Select inner assignment" })
+
+    vim.keymap.set({ "x", "o" }, "aa", function()
+      select.select_textobject("@parameter.outer", "textobjects")
+    end, { desc = "Select outer parameter" })
+    vim.keymap.set({ "x", "o" }, "ia", function()
+      select.select_textobject("@parameter.inner", "textobjects")
+    end, { desc = "Select inner parameter" })
+
+    vim.keymap.set({ "x", "o" }, "ai", function()
+      select.select_textobject("@conditional.outer", "textobjects")
+    end, { desc = "Select outer conditional" })
+    vim.keymap.set({ "x", "o" }, "ii", function()
+      select.select_textobject("@conditional.inner", "textobjects")
+    end, { desc = "Select inner conditional" })
+
+    vim.keymap.set({ "x", "o" }, "al", function()
+      select.select_textobject("@loop.outer", "textobjects")
+    end, { desc = "Select outer loop" })
+    vim.keymap.set({ "x", "o" }, "il", function()
+      select.select_textobject("@loop.inner", "textobjects")
+    end, { desc = "Select inner loop" })
+
+    vim.keymap.set({ "x", "o" }, "af", function()
+      select.select_textobject("@call.outer", "textobjects")
+    end, { desc = "Select outer function call" })
+    vim.keymap.set({ "x", "o" }, "if", function()
+      select.select_textobject("@call.inner", "textobjects")
+    end, { desc = "Select inner function call" })
+
+    -- CRITICAL: Function/method textobjects (your dam/vim)
+    vim.keymap.set({ "x", "o" }, "am", function()
+      select.select_textobject("@function.outer", "textobjects")
+    end, { desc = "Select outer function" })
+    vim.keymap.set({ "x", "o" }, "im", function()
+      select.select_textobject("@function.inner", "textobjects")
+    end, { desc = "Select inner function" })
+
+    vim.keymap.set({ "x", "o" }, "ac", function()
+      select.select_textobject("@class.outer", "textobjects")
+    end, { desc = "Select outer class" })
+    vim.keymap.set({ "x", "o" }, "ic", function()
+      select.select_textobject("@class.inner", "textobjects")
+    end, { desc = "Select inner class" })
+
+    -- MOVE keymaps (]m, [m, etc.)
+    vim.keymap.set({ "n", "x", "o" }, "]m", function()
+      move.goto_next("@function.outer", "textobjects")
+    end, { desc = "Next function start" })
+    vim.keymap.set({ "n", "x", "o" }, "[m", function()
+      move.goto_previous("@function.outer", "textobjects")
+    end, { desc = "Prev function start" })
+
+    vim.keymap.set({ "n", "x", "o" }, "]M", function()
+      move.goto_next("@function.outer", "textobjects", { goto_end = true })
+    end, { desc = "Next function end" })
+    vim.keymap.set({ "n", "x", "o" }, "[M", function()
+      move.goto_previous("@function.outer", "textobjects", { goto_end = true })
+    end, { desc = "Prev function end" })
+
+    vim.keymap.set({ "n", "x", "o" }, "]c", function()
+      move.goto_next("@class.outer", "textobjects")
+    end, { desc = "Next class start" })
+    vim.keymap.set({ "n", "x", "o" }, "[c", function()
+      move.goto_previous("@class.outer", "textobjects")
+    end, { desc = "Prev class start" })
+
+    vim.keymap.set({ "n", "x", "o" }, "]i", function()
+      move.goto_next("@conditional.outer", "textobjects")
+    end, { desc = "Next conditional" })
+    vim.keymap.set({ "n", "x", "o" }, "[i", function()
+      move.goto_previous("@conditional.outer", "textobjects")
+    end, { desc = "Prev conditional" })
+
+    vim.keymap.set({ "n", "x", "o" }, "]l", function()
+      move.goto_next("@loop.outer", "textobjects")
+    end, { desc = "Next loop" })
+    vim.keymap.set({ "n", "x", "o" }, "[l", function()
+      move.goto_previous("@loop.outer", "textobjects")
+    end, { desc = "Prev loop" })
+
+    -- SWAP keymaps
+    vim.keymap.set("n", "<leader>na", function()
+      swap.swap_next("@parameter.inner", "textobjects")
+    end, { desc = "Swap with next parameter" })
+    vim.keymap.set("n", "<leader>pa", function()
+      swap.swap_previous("@parameter.inner", "textobjects")
+    end, { desc = "Swap with prev parameter" })
+
+    vim.keymap.set("n", "<leader>nm", function()
+      swap.swap_next("@function.outer", "textobjects")
+    end, { desc = "Swap with next function" })
+    vim.keymap.set("n", "<leader>pm", function()
+      swap.swap_previous("@function.outer", "textobjects")
+    end, { desc = "Swap with prev function" })
+
+    -- REPEATABLE MOVES (; and ,)
     vim.keymap.set({ "n", "x", "o" }, ";", ts_repeat_move.repeat_last_move_next)
     vim.keymap.set({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_previous)
 
-    -- Builtin f/t motions now use _expr suffix and need expr = true
     vim.keymap.set({ "n", "x", "o" }, "f", ts_repeat_move.builtin_f_expr, { expr = true })
     vim.keymap.set({ "n", "x", "o" }, "F", ts_repeat_move.builtin_F_expr, { expr = true })
     vim.keymap.set({ "n", "x", "o" }, "t", ts_repeat_move.builtin_t_expr, { expr = true })
