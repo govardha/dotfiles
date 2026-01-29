@@ -4,10 +4,14 @@ local M = {}
 
 function M.apply(config)
   -- Window and UI
-  --config.color_scheme = "Catppuccin Mocha"
+  -- config.color_scheme = "Catppuccin Mocha"
   -- config.color_scheme = 'Tokyo Night (Gogh)'
   -- config.color_scheme = "Tokyo Night"
-  config.color_scheme = "Tokyo Night Storm"
+  -- config.color_scheme = "Tokyo Night Storm"
+  -- config.color_scheme = 'Gruvbox Material-Dark (Gogh)'
+  -- config.color_scheme = 'Selenized Black (Gogh)'
+  config.color_scheme = 'Everforest Dark Hard (Gogh)'
+
   config.colors = {
     foreground = "#CBE0F0",
     background = "#011628",
@@ -126,6 +130,8 @@ function M.apply(config)
   config.scrollback_lines = 10000
   config.term = "xterm-256color"
   config.default_cursor_style = "BlinkingBar"
+
+  config.text_min_contrast_ratio = 4.5 -- Standard accessibility ratio
 
   -- Window frame configuration
   config.window_frame = {
