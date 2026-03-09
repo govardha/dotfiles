@@ -52,34 +52,20 @@ return {
       },
     })
 
-    -- CRITICAL: Actually install parsers (respects offline mode)
+    -- One-time manual install command (run :TSInstallAll when setting up a new machine)
     local offline_guard = require("gov.core.offline-guard")
-    if offline_guard.is_online() then
-      -- Install parsers on startup (async, non-blocking)
-      -- This is a no-op if already installed
+    vim.api.nvim_create_user_command("TSInstallAll", function()
+      if not offline_guard.is_online() then
+        vim.notify("Offline: cannot install parsers", vim.log.levels.ERROR)
+        return
+      end
       ts.install({
-        "bash",
-        "c",
-        "css",
-        "dockerfile",
-        "gitignore",
-        "graphql",
-        "html",
-        "javascript",
-        "json",
-        "lua",
-        "markdown",
-        "markdown_inline",
-        "perl",
-        "python",
-        "query",
-        "tsx",
-        "typescript",
-        "vim",
-        "vimdoc",
-        "yaml",
-        "xml",
+        "bash", "c", "css", "dockerfile", "gitignore", "graphql",
+        "html", "javascript", "json", "lua", "markdown", "markdown_inline",
+        "perl", "python", "query", "tsx", "typescript", "vim", "vimdoc",
+        "yaml", "xml",
       })
-    end
+      vim.notify("TSInstallAll: parser installation started", vim.log.levels.INFO)
+    end, { desc = "Install all treesitter parsers (requires NVIM_ONLINE=true)" })
   end,
 }
