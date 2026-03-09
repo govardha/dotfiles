@@ -5,38 +5,14 @@ return {
   dependencies = {
     "nvim-treesitter/nvim-treesitter",
   },
-  init = function()
-    -- Disable default keymaps (we'll set our own)
-    vim.g.no_plugin_maps = true
-  end,
   config = function()
-    -- Setup textobjects config
-    require("nvim-treesitter-textobjects").setup({
-      select = {
-        lookahead = true,
-        selection_modes = {
-          ['@parameter.outer'] = 'v', -- charwise
-          ['@function.outer'] = 'V',  -- linewise
-          ['@class.outer'] = '<c-v>', -- blockwise
-        },
-        include_surrounding_whitespace = false,
-      },
-      move = {
-        enable = true,
-        set_jumps = true,
-      },
-      swap = {
-        enable = true,
-      },
-    })
-
-    -- Get the modules
-    local select = require("nvim-treesitter-textobjects.select")
-    local move = require("nvim-treesitter-textobjects.move")
-    local swap = require("nvim-treesitter-textobjects.swap")
+    local select         = require("nvim-treesitter-textobjects.select")
+    local move           = require("nvim-treesitter-textobjects.move")
+    local swap           = require("nvim-treesitter-textobjects.swap")
     local ts_repeat_move = require("nvim-treesitter-textobjects.repeatable_move")
 
-    -- SELECT keymaps (your dam, vim, etc.)
+    -- ─── SELECT keymaps ───────────────────────────────────────────────
+
     vim.keymap.set({ "x", "o" }, "a=", function()
       select.select_textobject("@assignment.outer", "textobjects")
     end, { desc = "Select outer assignment" })
@@ -72,13 +48,12 @@ return {
       select.select_textobject("@call.inner", "textobjects")
     end, { desc = "Select inner function call" })
 
-    -- CRITICAL: Function/method textobjects (your dam/vim)
     vim.keymap.set({ "x", "o" }, "am", function()
       select.select_textobject("@function.outer", "textobjects")
-    end, { desc = "Select outer function" })
+    end, { desc = "Select outer function/method" })
     vim.keymap.set({ "x", "o" }, "im", function()
       select.select_textobject("@function.inner", "textobjects")
-    end, { desc = "Select inner function" })
+    end, { desc = "Select inner function/method" })
 
     vim.keymap.set({ "x", "o" }, "ac", function()
       select.select_textobject("@class.outer", "textobjects")
@@ -87,7 +62,8 @@ return {
       select.select_textobject("@class.inner", "textobjects")
     end, { desc = "Select inner class" })
 
-    -- MOVE keymaps (]m, [m, etc.)
+    -- ─── MOVE keymaps ─────────────────────────────────────────────────
+
     vim.keymap.set({ "n", "x", "o" }, "]m", function()
       move.goto_next("@function.outer", "textobjects")
     end, { desc = "Next function start" })
@@ -123,7 +99,8 @@ return {
       move.goto_previous("@loop.outer", "textobjects")
     end, { desc = "Prev loop" })
 
-    -- SWAP keymaps
+    -- ─── SWAP keymaps ─────────────────────────────────────────────────
+
     vim.keymap.set("n", "<leader>na", function()
       swap.swap_next("@parameter.inner", "textobjects")
     end, { desc = "Swap with next parameter" })
@@ -138,7 +115,8 @@ return {
       swap.swap_previous("@function.outer", "textobjects")
     end, { desc = "Swap with prev function" })
 
-    -- REPEATABLE MOVES (; and ,)
+    -- ─── REPEATABLE MOVES (; and ,) ───────────────────────────────────
+
     vim.keymap.set({ "n", "x", "o" }, ";", ts_repeat_move.repeat_last_move_next)
     vim.keymap.set({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_previous)
 
