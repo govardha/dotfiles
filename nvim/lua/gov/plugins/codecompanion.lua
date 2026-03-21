@@ -12,46 +12,52 @@ return {
   config = function()
     local adapters = require("codecompanion.adapters")
 
-    -- 1. Create the adapter object directly in a variable
-    local groq_adapter = adapters.extend("openai_compatible", {
+    -- 1. Create GROQ object (the working one)
+    local my_groq = adapters.extend("openai_compatible", {
       env = {
-        url = "https://api.groq.com/openai/v1",
-        chat_url = "/chat/completions",
-        api_key = "GROQ_API_KEY",
+        url = "https://api.groq.com/openai",
+        api_key = os.getenv("GROQ_API_KEY"),
+      },
+      schema = {
+        model = { default = "llama-3.3-70b-versatile" },
+      },
+    })
+
+    -- 2. Create OPENROUTER object (the same way)
+    local my_openrouter = adapters.extend("openai_compatible", {
+      env = {
+        url = "https://openrouter.ai/api/v1",
+        api_key = os.getenv("OPENROUTER_API_KEY"),
+      },
+      headers = {
+        ["HTTP-Referer"] = "https://github.com/olimorris/codecompanion.nvim",
+        ["X-Title"] = "CodeCompanion",
       },
       schema = {
         model = {
-          default = "llama-3.3-70b-versatile",
+          default = "google/gemini-2.0-flash-lite-preview-02-05:free",
         },
       },
     })
 
+    -- 3. Pass the objects directly to setup
     require("codecompanion").setup({
       strategies = {
-        -- 2. PASS THE OBJECT DIRECTLY. No strings, no "resolve" call.
-        chat = { adapter = groq_adapter },
-        slash_commands = {
-          ["file"] = {
-            callback = "helpers.slash_commands.file",
-            description = "Select a file with Telescope",
-            opts = {
-              provider = "telescope", -- Forces it to use Telescope
-              contains_code = true,
-            },
-          },
-        },
-        inline = { adapter = groq_adapter },
+        chat = { adapter = my_groq },
+        inline = { adapter = my_groq },
       },
-      -- We still map it here so the UI knows what to call it
       adapters = {
-        groq = groq_adapter,
+        groq = my_groq,
+        openrouter = my_openrouter,
       },
-      opts = { log_level = "TRACE" }, -- Crank this up to see everything
     })
 
     -- ── Keymaps ──────────────────────────────────────────────────────
     local map = vim.keymap.set
-    map({ "n", "v" }, "<leader>ac", "<cmd>CodeCompanionChat toggle<CR>", { desc = "AI: Toggle Chat" })
+    -- Groq (Still working)
+    map({ "n", "v" }, "<leader>ac", "<cmd>CodeCompanionChat adapter=groq<CR>", { desc = "AI: Groq" })
+    -- OpenRouter (Added via the same stable method)
+    map({ "n", "v" }, "<leader>ao", "<cmd>CodeCompanionChat adapter=openrouter<CR>", { desc = "AI: OpenRouter" })
     map({ "n", "v" }, "<leader>ai", "<cmd>CodeCompanion<CR>", { desc = "AI: Inline" })
   end,
 }
