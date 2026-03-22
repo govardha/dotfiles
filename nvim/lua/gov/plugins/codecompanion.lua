@@ -40,24 +40,43 @@ return {
       },
     })
 
-    -- 3. Pass the objects directly to setup
+
+    -- 4. Pass the objects directly to setup
     require("codecompanion").setup({
       strategies = {
-        chat = { adapter = my_groq },
-        inline = { adapter = my_groq },
+        chat = { adapter = "kiro" },
+        inline = { adapter = "kiro" },
+        agent = { adapter = "kiro" },
       },
       adapters = {
         groq = my_groq,
         openrouter = my_openrouter,
       },
+      opts = {
+        log_level = "DEBUG", -- TRACE|DEBUG|ERROR|INFO
+      },
     })
 
     -- ── Keymaps ──────────────────────────────────────────────────────
     local map = vim.keymap.set
-    -- Groq (Still working)
     map({ "n", "v" }, "<leader>ac", "<cmd>CodeCompanionChat adapter=groq<CR>", { desc = "AI: Groq" })
-    -- OpenRouter (Added via the same stable method)
     map({ "n", "v" }, "<leader>ao", "<cmd>CodeCompanionChat adapter=openrouter<CR>", { desc = "AI: OpenRouter" })
+    map({ "n", "v" }, "<leader>al", "<cmd>CodeCompanionChat adapter=claude_code<CR>", { desc = "AI: Claude Code" })
+    map({ "n", "v" }, "<leader>ak", "<cmd>CodeCompanionChat adapter=kiro<CR>", { desc = "AI: Kiro" })
     map({ "n", "v" }, "<leader>ai", "<cmd>CodeCompanion<CR>", { desc = "AI: Inline" })
+
+    -- Recommended additions from the docs
+    map({ "n", "v" }, "<C-a>", "<cmd>CodeCompanionActions<CR>", { desc = "AI: Action Palette" })
+    map({ "n", "v" }, "<leader>at", "<cmd>CodeCompanionChat Toggle<CR>", { desc = "AI: Toggle Chat" })
+    map("v", "ga", "<cmd>CodeCompanionChat Add<CR>", { desc = "AI: Add to Chat" })
+
+    -- Prompt library shortcuts (visual mode only)
+    map("v", "<leader>ae", "<cmd>CodeCompanion /explain<CR>", { desc = "AI: Explain" })
+    map("v", "<leader>af", "<cmd>CodeCompanion /fix<CR>", { desc = "AI: Fix" })
+    map("v", "<leader>aT", "<cmd>CodeCompanion /tests<CR>", { desc = "AI: Tests" })
+    map("n", "<leader>am", "<cmd>CodeCompanion /commit<CR>", { desc = "AI: Commit msg" })
+
+    -- Command line abbreviation (type 'cc' instead of 'CodeCompanion')
+    vim.cmd([[cab cc CodeCompanion]])
   end,
 }
