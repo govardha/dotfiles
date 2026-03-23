@@ -1,18 +1,27 @@
 -- nvim/lua/gov/plugins/codecompanion.lua
+--
+-- CodeCompanion plugin config: AI-powered coding assistant for Neovim.
+-- Supports multiple LLM backends (Groq, OpenRouter, Claude Code)
+-- via the openai_compatible adapter interface.
+--
+-- Env vars required:
+--   GROQ_API_KEY      – for Groq adapter
+--   OPENROUTER_API_KEY – for OpenRouter adapter
+--
 return {
   "olimorris/codecompanion.nvim",
-  lazy = false,
+  lazy = false, -- load immediately so keymaps are always available
   dependencies = {
-    "nvim-lua/plenary.nvim",
-    "nvim-treesitter/nvim-treesitter",
-    "hrsh7th/nvim-cmp",
-    "stevearc/dressing.nvim",
-    "nvim-telescope/telescope.nvim",
+    "nvim-lua/plenary.nvim",            -- async utilities
+    "nvim-treesitter/nvim-treesitter",  -- syntax-aware context
+    "hrsh7th/nvim-cmp",                 -- completion integration
+    "stevearc/dressing.nvim",           -- improved UI for select/input
+    "nvim-telescope/telescope.nvim",    -- fuzzy finder integration
   },
   config = function()
     local adapters = require("codecompanion.adapters")
 
-    -- 1. Create GROQ object (the working one)
+    -- 1. Groq adapter – fast inference, free tier available
     local my_groq = adapters.extend("openai_compatible", {
       env = {
         url = "https://api.groq.com/openai",
@@ -23,7 +32,7 @@ return {
       },
     })
 
-    -- 2. Create OPENROUTER object (the same way)
+    -- 2. OpenRouter adapter – gateway to many models, using free Gemini tier
     local my_openrouter = adapters.extend("openai_compatible", {
       env = {
         url = "https://openrouter.ai/api/v1",
@@ -41,7 +50,8 @@ return {
     })
 
 
-    -- 4. Pass the objects directly to setup
+    -- 4. Main setup – wire adapters into strategies
+    --    chat & agent use claude_code; inline uses groq for speed
     require("codecompanion").setup({
       strategies = {
         chat = { adapter = "claude_code" },
@@ -66,7 +76,7 @@ return {
     map({ "n", "v" }, "<leader>ag", "<cmd>CodeCompanionChat adapter=groq<CR>", { desc = "AI: Groq (free)" })
     map({ "n", "v" }, "<leader>ao", "<cmd>CodeCompanionChat adapter=openrouter<CR>", { desc = "AI: OpenRouter" })
 
-    -- ── Inline ───────────────────────────────────────────────────────
+    -- ── Inline: quick edits in-place ─────────────────────────────────
     map({ "n", "v" }, "<leader>ai", "<cmd>CodeCompanion<CR>", { desc = "AI: Inline (groq)" })
     map({ "n", "v" }, "<leader>aI", "<cmd>CodeCompanion adapter=openrouter<CR>", { desc = "AI: Inline (openrouter)" })
 
@@ -81,7 +91,7 @@ return {
     map("v", "<leader>aT", "<cmd>CodeCompanion /tests<CR>", { desc = "AI: Generate tests" })
     map("n", "<leader>am", "<cmd>CodeCompanion /commit<CR>", { desc = "AI: Commit message" })
 
-    -- ── Command line abbreviation ─────────────────────────────────────
+    -- ── Command abbreviation: type `:cc` instead of `:CodeCompanion` ──
     vim.cmd([[cab cc CodeCompanion]])
   end,
 }
