@@ -44,9 +44,9 @@ return {
     -- 4. Pass the objects directly to setup
     require("codecompanion").setup({
       strategies = {
-        chat = { adapter = "kiro" },
-        inline = { adapter = "kiro" },
-        agent = { adapter = "kiro" },
+        chat = { adapter = "claude_code" },
+        inline = { adapter = my_groq },
+        agent = { adapter = "claude_code" },
       },
       adapters = {
         groq = my_groq,
@@ -59,24 +59,29 @@ return {
 
     -- ── Keymaps ──────────────────────────────────────────────────────
     local map = vim.keymap.set
-    map({ "n", "v" }, "<leader>ac", "<cmd>CodeCompanionChat adapter=groq<CR>", { desc = "AI: Groq" })
+
+    -- ── Chat: open with specific adapter ─────────────────────────────
+    map({ "n", "v" }, "<leader>ak", "<cmd>CodeCompanionChat adapter=kiro<CR>", { desc = "AI: Kiro (default chat)" })
+    map({ "n", "v" }, "<leader>ac", "<cmd>CodeCompanionChat adapter=claude_code<CR>", { desc = "AI: Claude Code" })
+    map({ "n", "v" }, "<leader>ag", "<cmd>CodeCompanionChat adapter=groq<CR>", { desc = "AI: Groq (free)" })
     map({ "n", "v" }, "<leader>ao", "<cmd>CodeCompanionChat adapter=openrouter<CR>", { desc = "AI: OpenRouter" })
-    map({ "n", "v" }, "<leader>al", "<cmd>CodeCompanionChat adapter=claude_code<CR>", { desc = "AI: Claude Code" })
-    map({ "n", "v" }, "<leader>ak", "<cmd>CodeCompanionChat adapter=kiro<CR>", { desc = "AI: Kiro" })
-    map({ "n", "v" }, "<leader>ai", "<cmd>CodeCompanion<CR>", { desc = "AI: Inline" })
 
-    -- Recommended additions from the docs
-    map({ "n", "v" }, "<C-a>", "<cmd>CodeCompanionActions<CR>", { desc = "AI: Action Palette" })
+    -- ── Inline ───────────────────────────────────────────────────────
+    map({ "n", "v" }, "<leader>ai", "<cmd>CodeCompanion<CR>", { desc = "AI: Inline (groq)" })
+    map({ "n", "v" }, "<leader>aI", "<cmd>CodeCompanion adapter=openrouter<CR>", { desc = "AI: Inline (openrouter)" })
+
+    -- ── Chat buffer controls ──────────────────────────────────────────
     map({ "n", "v" }, "<leader>at", "<cmd>CodeCompanionChat Toggle<CR>", { desc = "AI: Toggle Chat" })
-    map("v", "ga", "<cmd>CodeCompanionChat Add<CR>", { desc = "AI: Add to Chat" })
+    map({ "n", "v" }, "<C-a>", "<cmd>CodeCompanionActions<CR>", { desc = "AI: Action Palette" })
+    map("v", "ga", "<cmd>CodeCompanionChat Add<CR>", { desc = "AI: Add selection to Chat" })
 
-    -- Prompt library shortcuts (visual mode only)
-    map("v", "<leader>ae", "<cmd>CodeCompanion /explain<CR>", { desc = "AI: Explain" })
-    map("v", "<leader>af", "<cmd>CodeCompanion /fix<CR>", { desc = "AI: Fix" })
-    map("v", "<leader>aT", "<cmd>CodeCompanion /tests<CR>", { desc = "AI: Tests" })
-    map("n", "<leader>am", "<cmd>CodeCompanion /commit<CR>", { desc = "AI: Commit msg" })
+    -- ── Prompt library (visual selection required) ────────────────────
+    map("v", "<leader>ae", "<cmd>CodeCompanion /explain<CR>", { desc = "AI: Explain code" })
+    map("v", "<leader>af", "<cmd>CodeCompanion /fix<CR>", { desc = "AI: Fix code" })
+    map("v", "<leader>aT", "<cmd>CodeCompanion /tests<CR>", { desc = "AI: Generate tests" })
+    map("n", "<leader>am", "<cmd>CodeCompanion /commit<CR>", { desc = "AI: Commit message" })
 
-    -- Command line abbreviation (type 'cc' instead of 'CodeCompanion')
+    -- ── Command line abbreviation ─────────────────────────────────────
     vim.cmd([[cab cc CodeCompanion]])
   end,
 }
