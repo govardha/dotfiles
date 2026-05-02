@@ -125,6 +125,21 @@ function M.apply(config)
     end
 
     table.insert(launch_menu, { label = "---" })
+  elseif wezterm.target_triple:match("linux") then
+    -- Linux/Ubuntu Specific Configurations
+    config.font = wezterm.font("JetBrains Mono")
+
+    table.insert(launch_menu, {
+      label = "local shell",
+    })
+
+    -- Add nodes from central config
+    local node_entries = nodes_config.get_launch_menu_entries()
+    for _, entry in ipairs(node_entries) do
+      table.insert(launch_menu, entry)
+    end
+
+    table.insert(launch_menu, { label = "---" })
   end
 end
 
