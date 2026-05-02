@@ -28,7 +28,7 @@ Files in `config.d/` are processed in lexical order (numeric prefixes control or
 
 ```ssh-config
 # Load all modular config files
-Include ~/.ssh/config.d/*
+Include ~/.ssh/config.d/
 ```
 
 That's it. All host definitions live in `config.d/`.
