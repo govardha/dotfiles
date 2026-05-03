@@ -147,12 +147,11 @@ local function get_group_config(env)
     return {
       {
         label = "--- Depot Nodes ---",
-        pattern = "depot",                                  -- Matches anything with "depot" in hostname
-        explicit = { "rd", "rd2", "bala", "venky", "mikelee" }, -- Or explicit list
+        pattern = "depot",                                  -- Matches anything with "depot" in alias/hostname
       },
       {
         label = "--- Other Hosts ---",
-        explicit = { "what", "imac-ubuntu" }, -- Specific hosts
+        explicit = { "what", "what6", "imac-ubuntu" }, -- Specific hosts
       },
       {
         label = "--- VPN Nodes ---",
@@ -164,23 +163,20 @@ end
 
 -- Check if a host matches a group
 local function host_matches_group(host, group)
-  -- Check explicit list first
+  -- Check explicit list
   if group.explicit then
     for _, name in ipairs(group.explicit) do
       if host.alias == name then
         return true
       end
     end
-    return false
   end
 
   -- Check pattern matching
   if group.pattern then
-    -- Try matching alias
     if host.alias:match(group.pattern) then
       return true
     end
-    -- Try matching hostname if available
     if host.hostname and host.hostname:match(group.pattern) then
       return true
     end

@@ -77,10 +77,10 @@ function M.apply(config)
 
   config.font = wezterm.font("JetBrains Mono")
   config.font_size = 12.0
+  config.enable_scroll_bar = true
   config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
   config.integrated_title_buttons = { "Hide", "Maximize", "Close" }
   config.integrated_title_button_style = "Windows"
-  config.enable_scroll_bar = true
 
   -- Window padding
   config.window_padding = {
@@ -133,30 +133,39 @@ function M.apply(config)
 
   config.text_min_contrast_ratio = 4.5 -- Standard accessibility ratio
 
-  -- Window frame configuration
+  -- Window frame configuration (skip border overrides on Linux/Wayland — they steal resize zones)
+  local is_linux = wezterm.target_triple:match("linux") ~= nil
+
+  if is_linux then
+    config.initial_cols = 140
+    config.initial_rows = 38
+  end
+
   config.window_frame = {
     font = wezterm.font("Roboto"),
     font_size = 10,
-    border_left_width = "0.5cell",
-    border_right_width = "0.5cell",
-    border_bottom_height = "0.5cell",
-    border_top_height = "0.5cell",
   }
+  if not is_linux then
+    config.window_frame.border_left_width = "0.5cell"
+    config.window_frame.border_right_width = "0.5cell"
+    config.window_frame.border_bottom_height = "0.5cell"
+    config.window_frame.border_top_height = "0.5cell"
+  end
 
-  -- Window control icons
-  local window_min = " 󰖰 "
-  local window_max = " 󰖯 "
-  local window_close = " 󰅖 "
+    -- Window control icons
+    local window_min = " 󰖰 "
+    local window_max = " 󰖯 "
+    local window_close = " 󰅖 "
 
-  -- Tab bar style with window control icons
-  config.tab_bar_style = {
-    window_hide = window_min,
-    window_hide_hover = window_min,
-    window_maximize = window_max,
-    window_maximize_hover = window_max,
-    window_close = window_close,
-    window_close_hover = window_close,
-  }
+    -- Tab bar style with window control icons
+    config.tab_bar_style = {
+      window_hide = window_min,
+      window_hide_hover = window_min,
+      window_maximize = window_max,
+      window_maximize_hover = window_max,
+      window_close = window_close,
+      window_close_hover = window_close,
+    }
 end
 
 return M
