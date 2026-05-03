@@ -78,9 +78,21 @@ function M.apply(config)
   config.font = wezterm.font("JetBrains Mono")
   config.font_size = 12.0
   config.enable_scroll_bar = true
-  config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
+
+  local is_linux = wezterm.target_triple:match("linux") ~= nil
+
+  if is_linux then
+    config.window_decorations = "RESIZE"
+  else
+    config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
+  end
   config.integrated_title_buttons = { "Hide", "Maximize", "Close" }
   config.integrated_title_button_style = "Windows"
+
+  if is_linux then
+    config.initial_cols = 140
+    config.initial_rows = 38
+  end
 
   -- Window padding
   config.window_padding = {
@@ -133,7 +145,7 @@ function M.apply(config)
 
   config.text_min_contrast_ratio = 4.5 -- Standard accessibility ratio
 
-  -- Window frame configuration (skip border overrides on Linux/Wayland — they steal resize zones)
+  -- Window frame configuration
   local is_linux = wezterm.target_triple:match("linux") ~= nil
 
   if is_linux then
@@ -141,16 +153,15 @@ function M.apply(config)
     config.initial_rows = 38
   end
 
+  -- Window frame configuration
   config.window_frame = {
     font = wezterm.font("Roboto"),
     font_size = 10,
+    border_left_width = "0.5cell",
+    border_right_width = "0.5cell",
+    border_bottom_height = "0.5cell",
+    border_top_height = "0.5cell",
   }
-  if not is_linux then
-    config.window_frame.border_left_width = "0.5cell"
-    config.window_frame.border_right_width = "0.5cell"
-    config.window_frame.border_bottom_height = "0.5cell"
-    config.window_frame.border_top_height = "0.5cell"
-  end
 
     -- Window control icons
     local window_min = " 󰖰 "
