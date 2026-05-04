@@ -11,6 +11,7 @@ local function detect_environment()
     is_work_windows = false,
     is_home_windows = false,
     is_home_osx = false,
+    is_home_linux = false,
   }
 
   if wezterm.target_triple == "x86_64-pc-windows-msvc" then
@@ -24,6 +25,9 @@ local function detect_environment()
   elseif wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin" then
     env_info.is_home_osx = true
     wezterm.log_info("Detected: Home macOS environment")
+  elseif wezterm.target_triple:match("linux") then
+    env_info.is_home_linux = true
+    wezterm.log_info("Detected: Home Linux environment")
   end
 
   return env_info
@@ -34,6 +38,7 @@ function M.setup_workspaces(env_info)
   local is_work_windows = env_info.is_work_windows
   local is_home_windows = env_info.is_home_windows
   local is_home_osx = env_info.is_home_osx
+  local is_home_linux = env_info.is_home_linux
 
   -- Set up workspaces based on environment
   if is_home_windows then
@@ -150,6 +155,28 @@ function M.setup_workspaces(env_info)
     local _, third_pane, _ = depot_window:spawn_tab({
       args = { "ssh", "what" },
     })
+
+    -- Set active workspace
+    mux.set_active_workspace("depot")
+  elseif is_home_linux then
+    wezterm.log_info("Setting up workspaces for home Linux environment")
+
+    -- VPN workspace setup
+    local _, _, vpn_window = mux.spawn_window({
+      workspace = "vpns",
+    })
+    vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn" } })
+    vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn2" } })
+    vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn3" } })
+    vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn4" } })
+
+    -- Depot workspace setup
+    local _, _, depot_window = mux.spawn_window({
+      workspace = "depot",
+    })
+    depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
+    depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
+    depot_window:spawn_tab({ args = { "ssh", "what" } })
 
     -- Set active workspace
     mux.set_active_workspace("depot")

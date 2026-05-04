@@ -11,11 +11,13 @@ local function detect_env()
   local is_work = dom and string.upper(dom) == WORK_DOMAIN_NAME
   local is_windows = wezterm.target_triple == "x86_64-pc-windows-msvc"
   local is_macos = wezterm.target_triple:match("darwin") ~= nil
+  local is_linux = wezterm.target_triple:match("linux") ~= nil
 
   return {
     is_work_windows = is_windows and is_work,
     is_home_windows = is_windows and not is_work,
     is_macos = is_macos,
+    is_linux = is_linux,
   }
 end
 
@@ -38,12 +40,78 @@ local function get_ssh_command(is_windows)
   end
 end
 
+-- Expand ~ and glob patterns in Include paths
+local function expand_include_path(path_pattern)
+  local home = os.getenv("HOME") or os.getenv("USERPROFILE") or ""
+  local expanded = path_pattern:gsub("^~", home)
+  -- Use shell to expand globs
+  local handle = io.popen('ls -1 ' .. expanded .. ' 2>/dev/null')
+  if not handle then return {} end
+  local files = {}
+  for file_path in handle:lines() do
+    table.insert(files, file_path)
+  end
+  handle:close()
+  return files
+end
+
+-- Parse hosts from a single SSH config file
+local function parse_hosts_from_file(filepath, hosts, seen_files)
+  seen_files = seen_files or {}
+  if seen_files[filepath] then return end
+  seen_files[filepath] = true
+
+  local file = io.open(filepath, "r")
+  if not file then
+    wezterm.log_info("Could not open SSH config at: " .. filepath)
+    return
+  end
+
+  local current_host = nil
+  for line in file:lines() do
+    -- Handle Include directives
+    local include_path = line:match("^%s*Include%s+(.+)%s*$")
+    if include_path then
+      local files = expand_include_path(include_path)
+      for _, inc_file in ipairs(files) do
+        parse_hosts_from_file(inc_file, hosts, seen_files)
+      end
+    else
+      -- Match "Host <name>" lines
+      local host = line:match("^%s*Host%s+([^%s*?]+)%s*$")
+      if host then
+        if not host:match("[*?]") then
+          current_host = {
+            alias = host,
+            hostname = nil,
+            user = nil,
+          }
+          table.insert(hosts, current_host)
+        else
+          current_host = nil
+        end
+      elseif current_host then
+        local hostname = line:match("^%s*HostName%s+(.+)%s*$")
+        if hostname then
+          current_host.hostname = hostname
+        end
+        local user = line:match("^%s*User%s+(.+)%s*$")
+        if user then
+          current_host.user = user
+        end
+      end
+    end
+  end
+
+  file:close()
+end
+
 -- Parse SSH config file and extract Host entries
 local function parse_ssh_config()
   local env = detect_env()
   local ssh_config_path
 
-  if env.is_macos or env.is_home_windows then
+  if env.is_macos or env.is_home_windows or env.is_linux then
     local home = os.getenv("HOME")
     ssh_config_path = home .. "/.ssh/config"
   elseif env.is_work_windows then
@@ -57,44 +125,7 @@ local function parse_ssh_config()
     return hosts
   end
 
-  local file = io.open(ssh_config_path, "r")
-  if not file then
-    wezterm.log_info("Could not open SSH config at: " .. ssh_config_path)
-    return hosts
-  end
-
-  local current_host = nil
-  for line in file:lines() do
-    -- Match "Host <name>" lines
-    local host = line:match("^%s*Host%s+([^%s*?]+)%s*$")
-    if host then
-      -- Skip wildcard patterns like "i-*" or "mi-*"
-      if not host:match("[*?]") then
-        current_host = {
-          alias = host,
-          hostname = nil,
-          user = nil,
-        }
-        table.insert(hosts, current_host)
-      else
-        current_host = nil
-      end
-    elseif current_host then
-      -- Extract HostName
-      local hostname = line:match("^%s*HostName%s+(.+)%s*$")
-      if hostname then
-        current_host.hostname = hostname
-      end
-
-      -- Extract User
-      local user = line:match("^%s*User%s+(.+)%s*$")
-      if user then
-        current_host.user = user
-      end
-    end
-  end
-
-  file:close()
+  parse_hosts_from_file(ssh_config_path, hosts)
   return hosts
 end
 
@@ -112,16 +143,15 @@ local function get_group_config(env)
       },
     }
   else
-    -- Home/macOS groups
+    -- Home: macOS / Linux / Home Windows
     return {
       {
         label = "--- Depot Nodes ---",
-        pattern = "depot",                                  -- Matches anything with "depot" in hostname
-        explicit = { "rd", "rd2", "bala", "venky", "mikelee" }, -- Or explicit list
+        pattern = "depot",                                  -- Matches anything with "depot" in alias/hostname
       },
       {
         label = "--- Other Hosts ---",
-        explicit = { "what", "imac-ubuntu" }, -- Specific hosts
+        explicit = { "what", "what6", "imac-ubuntu" }, -- Specific hosts
       },
       {
         label = "--- VPN Nodes ---",
@@ -133,23 +163,20 @@ end
 
 -- Check if a host matches a group
 local function host_matches_group(host, group)
-  -- Check explicit list first
+  -- Check explicit list
   if group.explicit then
     for _, name in ipairs(group.explicit) do
       if host.alias == name then
         return true
       end
     end
-    return false
   end
 
   -- Check pattern matching
   if group.pattern then
-    -- Try matching alias
     if host.alias:match(group.pattern) then
       return true
     end
-    -- Try matching hostname if available
     if host.hostname and host.hostname:match(group.pattern) then
       return true
     end
