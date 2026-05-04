@@ -14,7 +14,6 @@ return {
   dependencies = {
     "nvim-lua/plenary.nvim",            -- async utilities
     "nvim-treesitter/nvim-treesitter",  -- syntax-aware context
-    "hrsh7th/nvim-cmp",                 -- completion integration
     "stevearc/dressing.nvim",           -- improved UI for select/input
     "nvim-telescope/telescope.nvim",    -- fuzzy finder integration
   },
