@@ -11,6 +11,9 @@ function M.apply(config)
     { key = "l", mods = "ALT",    action = wezterm.action.ShowLauncher },
     { key = "o", mods = "LEADER", action = wezterm.action.ShowLauncher },
 
+    -- Tmux-style paste: Ctrl+B ]
+    { key = "]", mods = "LEADER", action = act.PasteFrom("Clipboard") },
+
     -- Existing Leader+, for tab renaming
     {
       key = ",",
