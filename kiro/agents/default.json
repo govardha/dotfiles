@@ -1,0 +1,12 @@
+{
+  "name": "default",
+  "description": "Default agent with coding style matching nvim ruff/shfmt/prettier formatting",
+  "prompt": "file:///home/govardha/.kiro/prompts/coding-style.md",
+  "tools": ["*"],
+  "mcpServers": {},
+  "toolAliases": {},
+  "allowedTools": [],
+  "resources": [],
+  "hooks": {},
+  "toolsSettings": {}
+}
