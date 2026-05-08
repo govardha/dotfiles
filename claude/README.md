@@ -40,20 +40,30 @@ export PROD_ACCOUNT_IDS="123456789012|987654321098"
 export AUDIT_LOG="/var/log/claude/audit.jsonl"
 ```
 
-## Hooks & Settings Architecture
-
-See [HOOKS.md](HOOKS.md) for full documentation on:
-- Settings hierarchy (org → user → project)
-- What each hook does and when it fires
-- How user hooks complement org-level denials
-- Hook exit codes and behavior
-
 ## Adding a New Profile
 
 1. Add hooks to `hooks/<profile>/`
 2. Add `settings/<profile>-settings.json`
 3. Add agent to `agents/<profile>.md`
 4. Add case to `install.sh`
+
+## Git Hooks
+
+Claude Code commits get a co-author footer automatically; human commits stay clean:
+
+- **prepare-commit-msg** — Global git hook that detects when Claude is committing
+  - If `CLAUDE_CODE=1` env var is set → adds Claude footer
+  - If not set → commit has no footer (human-made)
+  - Installed to `~/.git-hooks/` and applies to all repos globally
+
+## Team Memory
+
+Every user gets baseline team memories during install:
+- **constraints.md** — hard safety rules (never commit to main/master, never commit secrets)
+- **team_practices.md** — code style and git discipline
+- **reference_links.md** — documentation and tools (grows as you learn)
+
+These are shared baseline; users can add personal memories later as they get comfortable with Claude Code.
 
 ## Repo Layout
 
@@ -62,6 +72,11 @@ claude/
 ├── CLAUDE.md
 ├── README.md
 ├── install.sh
+├── memory/              # team-wide baseline memories
+│   ├── MEMORY.md
+│   ├── constraints.md
+│   ├── team_practices.md
+│   └── reference_links.md
 ├── settings/
 ├── hooks/
 │   ├── common/          # all profiles

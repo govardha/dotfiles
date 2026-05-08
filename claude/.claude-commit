@@ -1,0 +1,22 @@
+#!/bin/bash
+# Helper script: run Claude commits with the proper env var
+# Usage: ~/.claude/.claude-commit "commit message" [files...]
+# Example: ~/.claude/.claude-commit "Fix bug" src/main.py tests/
+
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: $0 \"commit message\" [files...]" >&2
+  exit 1
+fi
+
+COMMIT_MSG="$1"
+shift
+
+# Add files if specified, otherwise assume already staged
+if [[ $# -gt 0 ]]; then
+  git add "$@"
+fi
+
+# Commit with CLAUDE_CODE=1 so hook adds the footer
+CLAUDE_CODE=1 git commit -m "$COMMIT_MSG"
