@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "claude-haiku-4-5-20251001",
+  "effortLevel": "medium",
+  "availableModels": [
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-4-6",
+    "claude-opus-4-7"
+  ],
+  "env": {
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5-20251001",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6"
+  },
+  "companyAnnouncements": [
+    "💰 MODEL COST LADDER: Haiku ($) → Sonnet ($$) → Opus ($$$). Default is Haiku. Switch with /model only when the task warrants it.",
+    "💰 EFFORT COST LADDER: medium ($) → high ($$) → max ($$$). Default is medium. Bump with /effort only for complex multi-step reasoning.",
+    "💡 Per-prompt deep reasoning without changing effort: type 'ultrathink' anywhere in your prompt. One turn, no global cost impact.",
+    "📊 CHECK YOUR USAGE: monitor spend at claude.ai → Settings → Usage and console.anthropic.com → Usage. Check weekly — surprises happen.",
+    "🚨 HIT YOUR $200 LIMIT? Drop back to Haiku + medium effort immediately. Audit recent sessions for runaway agentic loops or accidental Opus usage."
+  ],
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "disableBypassPermissionsMode": "disable",
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(~/.aws/credentials)",
+      "Read(~/.ssh/*)",
+      "Bash(git push --force *)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)"
+    ]
+  }
+}
