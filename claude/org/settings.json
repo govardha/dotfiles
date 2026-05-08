@@ -1,5 +1,6 @@
 {
   "model": "claude-haiku-4-5",
+  "disallowDefaultModel": true,
   "availableModels": [
     "claude-haiku-4-5",
     "claude-sonnet-4-6",
