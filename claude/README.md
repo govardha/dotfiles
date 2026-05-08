@@ -6,6 +6,7 @@ Hooks, agents, and settings for Claude Code across team profiles.
 
 | Profile | Who | Key Guards |
 |---|---|---|
+| `infra-ops` | Sysops + k8s + AWS (combined) | All guards stacked, git-repo-aware writes |
 | `sysops` | On-prem sysops, no sudo | Write path enforcement, loop detection, secrets hygiene |
 | `k8s-devops` | On-prem k8s/Helm/Argo | Manifest quality, kubectl dry-run, prod context block |
 | `aws-devops` | AWS CDK Python | IAM wildcard block, removal policy, prod account block |
@@ -19,6 +20,7 @@ Hooks, agents, and settings for Claude Code across team profiles.
 git clone <your-repo> ~/src/dotfiles
 
 # Install a profile
+bash ~/src/dotfiles/claude/install.sh infra-ops    # recommended for you
 bash ~/src/dotfiles/claude/install.sh sysops
 bash ~/src/dotfiles/claude/install.sh k8s-devops
 bash ~/src/dotfiles/claude/install.sh aws-devops
@@ -49,11 +51,13 @@ export AUDIT_LOG="/var/log/claude/audit.jsonl"
 
 ```
 claude/
+├── CLAUDE.md
 ├── README.md
 ├── install.sh
 ├── settings/
 ├── hooks/
 │   ├── common/          # all profiles
+│   ├── infra-ops/       # combined sysops+k8s+aws
 │   ├── sysops/
 │   ├── k8s-devops/
 │   └── aws-devops/

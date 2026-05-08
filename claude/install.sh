@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: bash ~/src/dotfiles/claude/install.sh [profile]
-# Profiles: sysops | k8s-devops | aws-devops | java-dev
+# Profiles: infra-ops | sysops | k8s-devops | aws-devops | java-dev
 # No profile = base only (prompt guard + audit)
 set -euo pipefail
 
@@ -20,6 +20,19 @@ done
 
 # ── Profile-specific hooks + settings ────────────────────────────────────────
 case "${PROFILE}" in
+  infra-ops)
+    for hook in bash-guard.sh write-guard.sh; do
+      cp "${DOTFILES_DIR}/hooks/infra-ops/${hook}" "${HOOKS_DIR}/${hook}"
+      chmod +x "${HOOKS_DIR}/${hook}"
+    done
+    # Reuse k8s yaml-guard and aws cdk-python-guard as-is
+    cp "${DOTFILES_DIR}/hooks/k8s-devops/yaml-guard.sh" "${HOOKS_DIR}/yaml-guard.sh"
+    chmod +x "${HOOKS_DIR}/yaml-guard.sh"
+    cp "${DOTFILES_DIR}/hooks/aws-devops/cdk-python-guard.sh" "${HOOKS_DIR}/cdk-python-guard.sh"
+    chmod +x "${HOOKS_DIR}/cdk-python-guard.sh"
+    cp "${DOTFILES_DIR}/settings/infra-ops-settings.json" "${CLAUDE_DIR}/settings.json"
+    cp "${DOTFILES_DIR}/agents/infra-ops.md" "${AGENTS_DIR}/infra-ops.md"
+    ;;
   sysops)
     for hook in bash-guard.sh write-guard.sh; do
       cp "${DOTFILES_DIR}/hooks/sysops/${hook}" "${HOOKS_DIR}/${hook}"
@@ -53,7 +66,7 @@ case "${PROFILE}" in
     ;;
   *)
     echo "Unknown profile: ${PROFILE}" >&2
-    echo "Valid: sysops | k8s-devops | aws-devops | java-dev | base" >&2
+    echo "Valid: infra-ops | sysops | k8s-devops | aws-devops | java-dev | base" >&2
     exit 1
     ;;
 esac
