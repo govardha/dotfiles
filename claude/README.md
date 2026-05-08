@@ -40,6 +40,14 @@ export PROD_ACCOUNT_IDS="123456789012|987654321098"
 export AUDIT_LOG="/var/log/claude/audit.jsonl"
 ```
 
+## Hooks & Settings Architecture
+
+See [HOOKS.md](HOOKS.md) for full documentation on:
+- Settings hierarchy (org → user → project)
+- What each hook does and when it fires
+- How user hooks complement org-level denials
+- Hook exit codes and behavior
+
 ## Adding a New Profile
 
 1. Add hooks to `hooks/<profile>/`
