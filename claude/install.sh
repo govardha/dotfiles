@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Usage: bash ~/src/dotfiles/claude/install.sh [profile]
+# Usage: bash /path/to/claude/install.sh [profile]
 # Profiles: infra-ops | sysops | k8s-devops | aws-devops | java-dev
 # No profile = base only (prompt guard + audit)
 set -euo pipefail
 
-DOTFILES_DIR="${HOME}/src/dotfiles/claude"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="${HOME}/.claude"
 HOOKS_DIR="${CLAUDE_DIR}/hooks"
 AGENTS_DIR="${CLAUDE_DIR}/agents"
