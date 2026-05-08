@@ -8,12 +8,29 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="${HOME}/.claude"
 HOOKS_DIR="${CLAUDE_DIR}/hooks"
 AGENTS_DIR="${CLAUDE_DIR}/agents"
+MEMORY_DIR="${CLAUDE_DIR}/memory"
 PROFILE="${1:-base}"
 
-mkdir -p "${HOOKS_DIR}" "${AGENTS_DIR}"
+mkdir -p "${HOOKS_DIR}" "${AGENTS_DIR}" "${MEMORY_DIR}"
+
+# ── Set up global git hooks (Claude commits get footer, humans don't) ────────
+GIT_HOOKS_DIR="${HOME}/.git-hooks"
+mkdir -p "${GIT_HOOKS_DIR}"
+cp "${DOTFILES_DIR}/hooks/global/prepare-commit-msg" "${GIT_HOOKS_DIR}/prepare-commit-msg"
+chmod +x "${GIT_HOOKS_DIR}/prepare-commit-msg"
+git config --global core.hooksPath "${GIT_HOOKS_DIR}"
+
+# ── Copy Claude commit helper script ─────────────────────────────────────────
+cp "${DOTFILES_DIR}/.claude-commit" "${CLAUDE_DIR}/.claude-commit"
+chmod +x "${CLAUDE_DIR}/.claude-commit"
+
+# ── Copy team baseline memories ──────────────────────────────────────────────
+for memory in "${DOTFILES_DIR}"/memory/*.md; do
+  cp "${memory}" "${MEMORY_DIR}/"
+done
 
 # ── Common hooks (always installed) ──────────────────────────────────────────
-for hook in audit.sh prompt-guard.sh session-start.sh; do
+for hook in audit.sh prompt-guard.sh session-start.sh branch-guard.sh; do
   cp "${DOTFILES_DIR}/hooks/common/${hook}" "${HOOKS_DIR}/${hook}"
   chmod +x "${HOOKS_DIR}/${hook}"
 done
@@ -76,3 +93,5 @@ echo "Hooks:"
 ls -1 "${HOOKS_DIR}"
 echo "Agents:"
 ls -1 "${AGENTS_DIR}"
+echo "Team memories:"
+ls -1 "${MEMORY_DIR}"

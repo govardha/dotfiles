@@ -1,6 +1,12 @@
-# Coding Style Rules
+---
+name: Team coding and workflow practices
+description: Code style, formatting, and git discipline for this org
+type: project
+---
 
-## Python
+## Code Style
+
+### Python
 - Formatter: ruff (Black-compatible defaults)
 - Line length: 88 characters max
 - Indentation: 4 spaces
@@ -9,46 +15,37 @@
 - Imports: sorted with ruff's isort (standard library, third-party, local — separated by blank lines)
 - f-strings preferred over .format() or %
 
-## Shell (bash/sh)
+### Shell (bash/sh)
 - Indentation: 2 spaces
 - Indent switch case bodies
 - Use `[[` over `[` in bash
 - Quote variables: `"${var}"` not `$var`
 - `set -euo pipefail` on every script
 
-## YAML / JSON
+### YAML / JSON
 - Indentation: 2 spaces
 - No trailing whitespace
 - Prettier-compatible formatting
 
-## Lua
+### Lua
 - Indentation: 2 spaces (StyLua defaults)
 
-## General
+### General
 - Default indentation: 2 spaces
 - No trailing whitespace
 - Files end with a single newline
 - UTF-8 encoding
 
 ## Git Workflow
-- Never commit or push directly to main/master
+
+- Never commit or push directly to main/master (enforced — feature branches only)
 - All changes on feature or bugfix branches (e.g. `feature/add-xyz`, `fix/broken-thing`)
 - Merge to main only via pull request
 - Atomic commits — one logical change per commit
 - Commit messages: imperative mood, under 72 chars
 - All commits include `Co-Authored-By: Claude <noreply@anthropic.com>` footer
 
-### How Claude Co-Author Footer Works
-
-The install script sets up a global git hook (`~/.git-hooks/prepare-commit-msg`) that adds the Claude footer only when Claude Code is committing:
-
-- **Claude commits**: Use `CLAUDE_CODE=1 git commit -m "..."` (or the helper script)
-- **Human commits**: Normal `git commit` has no footer
-
-The hook checks the `CLAUDE_CODE` env var to distinguish. Use the helper script for convenience:
-
+**Set up commit message template:**
 ```bash
-~/.claude/.claude-commit "Commit message" [files...]
+git config commit.template ~/.claude/.gitmessage
 ```
-
-This sets `CLAUDE_CODE=1` automatically and adds the footer.

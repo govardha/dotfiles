@@ -1,0 +1,8 @@
+# Write commit message above. Lines starting with '#' are ignored.
+# Use imperative mood ("Add feature" not "Added feature")
+# Limit subject to 50 characters
+# Separate subject from body with a blank line
+# Wrap body at 72 characters
+# Reference issues and PRs after the description
+
+Co-Authored-By: Claude <noreply@anthropic.com>
