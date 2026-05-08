@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Global git hook: Add Kiro co-author footer when KIRO_CLI=1 is set
+set -euo pipefail
+
+COMMIT_MSG_FILE="$1"
+
+if [[ "${KIRO_CLI:-0}" == "1" ]]; then
+  FOOTER="Co-Authored-By: Kiro <noreply@kiro.dev>"
+
+  if ! grep -q "Co-Authored-By: Kiro" "${COMMIT_MSG_FILE}"; then
+    echo "" >> "${COMMIT_MSG_FILE}"
+    echo "${FOOTER}" >> "${COMMIT_MSG_FILE}"
+  fi
+fi
