@@ -40,15 +40,19 @@
 
 ### How Claude Co-Author Footer Works
 
-The install script sets up a global git hook (`~/.git-hooks/prepare-commit-msg`) that adds the Claude footer only when Claude Code is committing:
+Two complementary mechanisms distinguish Claude commits from human commits:
 
-- **Claude commits**: Use `CLAUDE_CODE=1 git commit -m "..."` (or the helper script)
-- **Human commits**: Normal `git commit` has no footer
+1. **Git Hook** (`~/.git-hooks/prepare-commit-msg`)
+   - Adds the Claude footer when `CLAUDE_CODE=1` env var is set
+   - Humans commit normally without the env var (no footer)
 
-The hook checks the `CLAUDE_CODE` env var to distinguish. Use the helper script for convenience:
+2. **Claude Code Hook** (`~/.claude/hooks/global/inject-claude-env.sh`)
+   - Automatically runs before Bash tool executes git commands
+   - Detects `git commit` commands and auto-injects `CLAUDE_CODE=1`
+   - Transparent — no manual env var or special script needed
 
-```bash
-~/.claude/.claude-commit "Commit message" [files...]
-```
+**Result:**
+- **Claude commits** are auto-detected and get footer automatically
+- **Human commits** use normal `git commit` (no footer)
 
-This sets `CLAUDE_CODE=1` automatically and adds the footer.
+No action needed — the hook fires automatically when Claude runs git commit commands.

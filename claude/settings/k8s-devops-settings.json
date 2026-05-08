@@ -16,6 +16,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "~/.claude/hooks/global/inject-claude-env.sh"
+          },
+          {
+            "type": "command",
             "command": "~/.claude/hooks/bash-guard.sh"
           }
         ]
@@ -23,6 +27,10 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/branch-guard.sh"
+          },
           {
             "type": "command",
             "command": "~/.claude/hooks/yaml-guard.sh"

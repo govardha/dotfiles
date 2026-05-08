@@ -16,9 +16,16 @@ mkdir -p "${HOOKS_DIR}" "${AGENTS_DIR}" "${MEMORY_DIR}"
 # ── Set up global git hooks (Claude commits get footer, humans don't) ────────
 GIT_HOOKS_DIR="${HOME}/.git-hooks"
 mkdir -p "${GIT_HOOKS_DIR}"
-cp "${DOTFILES_DIR}/hooks/global/prepare-commit-msg" "${GIT_HOOKS_DIR}/prepare-commit-msg"
-chmod +x "${GIT_HOOKS_DIR}/prepare-commit-msg"
+for hook in prepare-commit-msg; do
+  cp "${DOTFILES_DIR}/hooks/global/${hook}" "${GIT_HOOKS_DIR}/${hook}"
+  chmod +x "${GIT_HOOKS_DIR}/${hook}"
+done
 git config --global core.hooksPath "${GIT_HOOKS_DIR}"
+
+# ── Copy Claude Code hooks ──────────────────────────────────────────────────
+mkdir -p "${HOOKS_DIR}/global"
+cp "${DOTFILES_DIR}/hooks/global/inject-claude-env.sh" "${HOOKS_DIR}/global/inject-claude-env.sh"
+chmod +x "${HOOKS_DIR}/global/inject-claude-env.sh"
 
 # ── Copy Claude commit helper script ─────────────────────────────────────────
 cp "${DOTFILES_DIR}/.claude-commit" "${CLAUDE_DIR}/.claude-commit"
