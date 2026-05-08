@@ -11,12 +11,8 @@
     "CLAUDE_CODE_EFFORT_LEVEL": "medium"
   },
   "companyAnnouncements": [
-    "💰 MODEL COST LADDER: Haiku ($) → Sonnet ($$) → Opus ($$$). Default is Haiku. Switch with /model only when the task warrants it.",
-    "💰 EFFORT COST LADDER: medium ($) → high ($$) → max ($$$). Default is medium. Bump with /effort only for complex multi-step reasoning.",
-    "💡 Per-prompt deep reasoning without changing effort: type 'ultrathink' anywhere in your prompt. One turn, no global cost impact.",
-    "📊 CHECK YOUR USAGE: monitor spend at claude.ai → Settings → Usage and console.anthropic.com → Usage. Check weekly — surprises happen.",
-    "🚨 HIT YOUR $200 LIMIT? Drop back to Haiku + medium effort immediately. Audit recent sessions for runaway agentic loops or accidental Opus usage."
-  ],
+  "💰 COST: Haiku ($) → Sonnet ($$) → Opus ($$$) | effort: medium ($) → high ($$) → max ($$$)\n💡 'ultrathink' in prompt = deep reasoning, one turn only\n📊 CHECK USAGE: claude.ai → Settings → Usage | console.anthropic.com → Usage\n🚨 HIT $200 LIMIT? Switch to Haiku + /effort medium. Check for runaway agentic loops."
+]
   "permissions": {
     "defaultMode": "acceptEdits",
     "disableBypassPermissionsMode": "disable",
