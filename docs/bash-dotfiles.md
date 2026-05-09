@@ -19,6 +19,43 @@
 Because of this split, our `bash_profile.common` sources `~/.bashrc` early so
 login shells also get interactive config. This is the standard pattern.
 
+## What happens when you SSH in
+
+SSH starts bash as a **login shell**. Exact sequence:
+
+```
+1. bash reads /etc/profile                          (system-wide, not ours)
+2. bash looks for the FIRST file that exists:
+     ~/.bash_profile  ← found, stops looking
+     ~/.bash_login
+     ~/.profile
+3. ~/.bash_profile (our bash_profile.loader) runs:
+     a. kiro-cli pre hook
+     b. source bash_profile.common
+          i.   set -o vi
+          ii.  source ~/.bashrc  ← this is the key bridge
+                 → kiro-cli pre hook
+                 → bashrc.common (prompt, aliases, pyenv, nvm, aws, secrets)
+                 → hosts/<hostname -s> (machine-specific)
+                 → roles/* from ~/.dotfiles-role (class-specific)
+                 → kiro-cli post hook
+          iii. PATH additions (~/bin, /opt/nvim/bin)
+          iv.  aps() + AWS profile completion
+          v.   CDK completions
+          vi.  bun PATH
+          vii. rich PS1 (overwrites the one from bashrc.common)
+     c. kiro-cli post hook
+4. You get your prompt.
+```
+
+**Key detail:** bash only reads `~/.bashrc` automatically for non-login
+interactive shells (new terminal tab on Linux). For login shells (SSH), it
+does NOT read `~/.bashrc` on its own — that's why `bash_profile.common`
+explicitly does `source ~/.bashrc`. Without that line, you'd SSH in and have
+no aliases, no prompt, no pyenv.
+
+This is the #1 source of "it works in my terminal but not over SSH" confusion.
+
 ## Load order after install
 
 ```
