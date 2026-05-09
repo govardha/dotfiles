@@ -16,6 +16,7 @@ Follow these formatting rules for all code you write or modify.
 - Indent switch case bodies (`-ci` flag behavior)
 - Use `[[` over `[` in bash
 - Quote variables: `"${var}"` not `$var`
+- `set -euo pipefail` on every script
 
 ## YAML
 - Indentation: 2 spaces
@@ -29,15 +30,14 @@ Follow these formatting rules for all code you write or modify.
 ## Lua
 - Indentation: 2 spaces (StyLua defaults)
 
+## Java
+- Google Java Style Guide strictly
+- Line length: 100 characters
+- Constructor injection only — no @Autowired field injection
+- Lombok allowed: @Data, @Builder, @Slf4j, @RequiredArgsConstructor
+
 ## General
 - Default indentation: 2 spaces (matches editor tabstop/shiftwidth)
 - No trailing whitespace
 - Files end with a single newline
 - UTF-8 encoding
-
-## Git Workflow
-- Never commit or push directly to main/master
-- All changes go on a feature or bugfix branch (e.g. `feature/add-xyz`, `fix/broken-thing`)
-- Merge to main/master only via pull request
-- Keep commits atomic — one logical change per commit
-- Write concise commit messages: imperative mood, under 72 chars

@@ -1,12 +1,49 @@
 {
   "name": "default",
-  "description": "Default agent with coding style matching nvim ruff/shfmt/prettier formatting",
-  "prompt": "file:///home/govardha/.kiro/prompts/coding-style.md",
+  "description": "Broad infra/dev agent — sysops, k8s, AWS CDK, Java, shell/Python scripting",
   "tools": ["*"],
-  "mcpServers": {},
-  "toolAliases": {},
-  "allowedTools": [],
-  "resources": [],
-  "hooks": {},
-  "toolsSettings": {}
+  "allowedTools": ["read", "glob", "grep"],
+  "resources": [
+    "file://.kiro/steering/**/*.md"
+  ],
+  "hooks": {
+    "agentSpawn": [
+      {
+        "command": "~/.kiro/hooks/session-start.sh"
+      }
+    ],
+    "userPromptSubmit": [
+      {
+        "command": "~/.kiro/hooks/prompt-guard.sh"
+      }
+    ],
+    "preToolUse": [
+      {
+        "matcher": "execute_bash",
+        "command": "~/.kiro/hooks/inject-kiro-env.sh"
+      },
+      {
+        "matcher": "execute_bash",
+        "command": "~/.kiro/hooks/bash-guard.sh"
+      },
+      {
+        "matcher": "fs_write",
+        "command": "~/.kiro/hooks/write-guard.sh"
+      },
+      {
+        "matcher": "fs_write",
+        "command": "~/.kiro/hooks/yaml-guard.sh"
+      },
+      {
+        "matcher": "fs_write",
+        "command": "~/.kiro/hooks/cdk-python-guard.sh"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "~/.kiro/hooks/audit.sh"
+      }
+    ]
+  },
+  "includeMcpJson": true
 }
