@@ -52,6 +52,9 @@ if command -v aws_completer &>/dev/null; then
   complete -C "$(command -v aws_completer)" aws
 fi
 
+# Kiro CLI env (triggers co-author hook on git commits)
+export KIRO_CLI=1
+
 # Secrets (host-local, never committed)
 [[ -f "${HOME}/.config/shell/secrets" ]] && source "${HOME}/.config/shell/secrets"
 [[ -f "${HOME}/.config/shell/claude-providers.sh" ]] && source "${HOME}/.config/shell/claude-providers.sh"
