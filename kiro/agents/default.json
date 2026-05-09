@@ -20,10 +20,6 @@
     "preToolUse": [
       {
         "matcher": "execute_bash",
-        "command": "~/.kiro/hooks/inject-kiro-env.sh"
-      },
-      {
-        "matcher": "execute_bash",
         "command": "~/.kiro/hooks/bash-guard.sh"
       },
       {
