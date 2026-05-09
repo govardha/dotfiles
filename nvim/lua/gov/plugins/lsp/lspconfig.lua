@@ -2,7 +2,7 @@ return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
   dependencies = {
-    "hrsh7th/cmp-nvim-lsp",
+    "saghen/blink.cmp",
     { "antosha417/nvim-lsp-file-operations", config = true },
     { "folke/neodev.nvim",                   opts = {} },
   },
@@ -13,9 +13,6 @@ return {
     local is_linux = uname.sysname == "Linux"
     local is_rhel = is_linux and vim.fn.filereadable("/etc/redhat-release") == 1
     local is_ubuntu = is_linux and vim.fn.filereadable("/etc/lsb-release") == 1
-
-    -- import cmp-nvim-lsp plugin
-    local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
     local keymap = vim.keymap -- for conciseness
     vim.api.nvim_create_autocmd("LspAttach", {
@@ -68,7 +65,7 @@ return {
     })
 
     -- used to enable autocompletion (assign to every lsp server config)
-    local capabilities = cmp_nvim_lsp.default_capabilities()
+    local capabilities = require("blink.cmp").get_lsp_capabilities()
 
     vim.diagnostic.config({
       signs = {
