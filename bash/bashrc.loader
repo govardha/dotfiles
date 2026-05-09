@@ -1,0 +1,24 @@
+# --- dotfiles loader ---
+# Kiro CLI pre block. Keep at the top of this file.
+[[ -f "${HOME}/.local/share/kiro-cli/shell/bashrc.pre.bash" ]] && builtin source "${HOME}/.local/share/kiro-cli/shell/bashrc.pre.bash"
+
+DOTFILES="${HOME}/src/dotfiles/bash"
+
+# Core
+[[ -f "${DOTFILES}/bashrc.common" ]] && source "${DOTFILES}/bashrc.common"
+
+# Host-specific
+[[ -f "${DOTFILES}/hosts/$(hostname -s)" ]] && source "${DOTFILES}/hosts/$(hostname -s)"
+
+# Role-specific
+_role_file="${HOME}/.dotfiles-role"
+[[ -f /etc/dotfiles-role ]] && _role_file="/etc/dotfiles-role"
+if [[ -f "${_role_file}" ]]; then
+  while IFS= read -r _role; do
+    [[ -n "${_role}" ]] && [[ -f "${DOTFILES}/roles/${_role}" ]] && source "${DOTFILES}/roles/${_role}"
+  done < "${_role_file}"
+fi
+unset _role_file _role
+
+# Kiro CLI post block. Keep at the bottom of this file.
+[[ -f "${HOME}/.local/share/kiro-cli/shell/bashrc.post.bash" ]] && builtin source "${HOME}/.local/share/kiro-cli/shell/bashrc.post.bash"
