@@ -20,5 +20,10 @@ backup_and_install() {
 backup_and_install bashrc
 backup_and_install bash_profile
 
+# Shell config dir
+mkdir -p "${HOME}/.config/shell"
+cp "${DOTFILES_DIR}/claude-providers.sh" "${HOME}/.config/shell/claude-providers.sh"
+logger -t kiro-op "installed claude-providers.sh"
+
 echo "Installed .bashrc and .bash_profile loaders."
 echo "Set role: echo 'depot' > ~/.dotfiles-role"
