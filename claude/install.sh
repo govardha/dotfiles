@@ -31,6 +31,9 @@ chmod +x "${HOOKS_DIR}/global/inject-claude-env.sh"
 cp "${DOTFILES_DIR}/.claude-commit" "${CLAUDE_DIR}/.claude-commit"
 chmod +x "${CLAUDE_DIR}/.claude-commit"
 
+# ── Install global CLAUDE.md ──────────────────────────────────────────────────
+cp "${DOTFILES_DIR}/CLAUDE.md" "${CLAUDE_DIR}/CLAUDE.md"
+
 # ── Copy team baseline memories ──────────────────────────────────────────────
 for memory in "${DOTFILES_DIR}"/memory/*.md; do
   cp "${memory}" "${MEMORY_DIR}/"
