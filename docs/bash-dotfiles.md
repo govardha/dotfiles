@@ -35,15 +35,28 @@ SSH starts bash as a **login shell**. Exact sequence:
           i.   set -o vi
           ii.  source ~/.bashrc  ← this is the key bridge
                  → kiro-cli pre hook
-                 → bashrc.common (prompt, aliases, pyenv, nvm, aws, secrets)
+                 → bashrc.common
+                     • parse_git_branch() function
+                     • python_version() function
+                     • basic PS1 (overridden later by bash_profile.common)
+                     • homebrew
+                     • editor + aliases (vi, gfgp, awslogin)
+                     • PATH (~/.local/bin)
+                     • bash completions
+                     • pyenv init
+                     • nvm
+                     • aws completer
+                     • KIRO_CLI=1
+                     • secrets (from ~/.config/shell/)
                  → hosts/<hostname -s> (machine-specific)
                  → roles/* from ~/.dotfiles-role (class-specific)
                  → kiro-cli post hook
           iii. PATH additions (~/bin, /opt/nvim/bin)
-          iv.  aps() + AWS profile completion
-          v.   CDK completions
-          vi.  bun PATH
-          vii. rich PS1 (overwrites the one from bashrc.common)
+          iv.  pyenv init (login-shell layer)
+          v.   aps() + AWS profile completion
+          vi.  CDK completions
+          vii. bun PATH
+          viii.rich PS1 (overwrites the one from bashrc.common)
      c. kiro-cli post hook
 4. You get your prompt.
 ```
@@ -55,6 +68,12 @@ explicitly does `source ~/.bashrc`. Without that line, you'd SSH in and have
 no aliases, no prompt, no pyenv.
 
 This is the #1 source of "it works in my terminal but not over SSH" confusion.
+
+**PS1 override:** The `bashrc.common` sets a basic PS1, but `bash_profile.common`
+sets a richer one at the end (with AWS_PROFILE, CLAUDE_PROVIDER, pyenv version,
+and git branch). For login shells, the rich PS1 wins because it runs after
+`~/.bashrc` returns. Functions like `parse_git_branch()` are defined in
+`bashrc.common` and available to the rich PS1 because bashrc is sourced first.
 
 ## Load order after install
 
@@ -68,34 +87,42 @@ This is the #1 source of "it works in my terminal but not over SSH" confusion.
   │     │   ~/.bashrc (bashrc.loader)               │
   │     │     ├── kiro-cli pre hook                 │
   │     │     ├── bashrc.common                     │
-  │     │     │     ├── prompt (PS1)                │
+  │     │     │     ├── parse_git_branch()          │
+  │     │     │     ├── python_version()            │
+  │     │     │     ├── PS1 (basic)                 │
   │     │     │     ├── homebrew                    │
-  │     │     │     ├── aliases (vi, gfgp, etc.)    │
-  │     │     │     ├── pyenv                       │
+  │     │     │     ├── editor (nvim) + aliases     │
+  │     │     │     ├── PATH (~/.local/bin)         │
+  │     │     │     ├── bash completions            │
+  │     │     │     ├── pyenv init                  │
   │     │     │     ├── nvm                         │
   │     │     │     ├── aws completer               │
+  │     │     │     ├── KIRO_CLI=1                  │
   │     │     │     └── secrets (from ~/.config/)   │
   │     │     ├── hosts/<hostname -s>               │
   │     │     ├── roles/* (from ~/.dotfiles-role)   │
   │     │     └── kiro-cli post hook                │
   │     │                                           │
   │     ├── PATH additions (/opt/nvim, ~/bin)  ◄────┘
+  │     ├── pyenv init (login-shell layer)
   │     ├── aps() + AWS profile completion
   │     ├── CDK completions
   │     ├── bun
-  │     └── rich PS1 (overrides bashrc PS1 for login shells)
+  │     └── rich PS1 (overrides bashrc.common PS1)
+  │           includes: AWS_PROFILE, CLAUDE_PROVIDER,
+  │           pyenv version, parse_git_branch
   └── kiro-cli post hook
 ```
 
 For a **non-login shell** (new Linux terminal tab), only `~/.bashrc` runs —
-you get the bashrc.common + host + role layers.
+you get the bashrc.common + host + role layers, with the basic PS1.
 
 ## File layout
 
 ```
 ~/src/dotfiles/bash/
-├── bashrc.common          # interactive shell: prompt, aliases, tools
-├── bash_profile.common    # login shell: PATH, completions, aps()
+├── bashrc.common          # interactive shell: functions, aliases, tools
+├── bash_profile.common    # login shell: PATH, completions, aps(), rich PS1
 ├── bashrc.loader          # installed as ~/.bashrc
 ├── bash_profile.loader    # installed as ~/.bash_profile
 ├── install.sh             # backs up originals, drops loaders
