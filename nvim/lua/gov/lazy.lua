@@ -29,7 +29,12 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-require("lazy").setup({ { import = "gov.plugins" }, { import = "gov.plugins.lsp" } }, {
+local plugin_imports = { { import = "gov.plugins" } }
+if not vim.g.is_msys2 then
+	table.insert(plugin_imports, { import = "gov.plugins.lsp" })
+end
+
+require("lazy").setup(plugin_imports, {
 	checker = {
 		enabled = is_online, -- Only check for updates when online
 		notify = false,

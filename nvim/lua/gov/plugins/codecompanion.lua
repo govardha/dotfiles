@@ -10,6 +10,7 @@
 --
 return {
   "olimorris/codecompanion.nvim",
+  cond = not vim.g.is_msys2,
   lazy = false, -- load immediately so keymaps are always available
   dependencies = {
     "nvim-lua/plenary.nvim",            -- async utilities

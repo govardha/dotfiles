@@ -2,7 +2,7 @@ return {
   "nvim-treesitter/nvim-treesitter",
   branch = "main",
   event = { "BufReadPre", "BufNewFile" },
-  build = ":TSUpdate",
+  build = not vim.g.is_msys2 and ":TSUpdate" or nil,
   dependencies = {
     "windwp/nvim-ts-autotag",
     "nvim-treesitter/nvim-treesitter-textobjects",

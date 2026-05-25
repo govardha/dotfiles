@@ -1,4 +1,8 @@
 require("gov.core")
+
+-- Detect MSYS2 environment (UCRT64, MINGW64, CLANG64, etc.)
+vim.g.is_msys2 = vim.fn.has("win32") == 1 and os.getenv("MSYSTEM") ~= nil
+
 -- Filetype detection
 vim.filetype.add({
   extension = {
