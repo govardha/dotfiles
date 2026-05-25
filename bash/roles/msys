@@ -3,6 +3,7 @@
 # No neovim; use native vim
 unalias vi 2>/dev/null
 unalias vim 2>/dev/null
+alias vi=vim
 export EDITOR=vim
 
 # Homebrew doesn't exist here
