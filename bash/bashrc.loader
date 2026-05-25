@@ -8,7 +8,10 @@ DOTFILES="${HOME}/src/dotfiles/bash"
 [[ -f "${DOTFILES}/bashrc.common" ]] && source "${DOTFILES}/bashrc.common"
 
 # Host-specific
-[[ -f "${DOTFILES}/hosts/$(hostname -s)" ]] && source "${DOTFILES}/hosts/$(hostname -s)"
+_dotfiles_host="${HOSTNAME%%.*}"
+[[ -z "${_dotfiles_host}" ]] && _dotfiles_host="$(hostname 2>/dev/null)" && _dotfiles_host="${_dotfiles_host%%.*}"
+[[ -n "${_dotfiles_host}" && -f "${DOTFILES}/hosts/${_dotfiles_host}" ]] && source "${DOTFILES}/hosts/${_dotfiles_host}"
+unset _dotfiles_host
 
 # Role-specific
 _role_file="${HOME}/.dotfiles-role"
