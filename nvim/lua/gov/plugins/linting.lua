@@ -1,5 +1,6 @@
 return {
   "mfussenegger/nvim-lint",
+  cond = not vim.g.is_msys2,
   event = { "BufReadPre", "BufNewFile" },
   config = function()
     local lint = require("lint")
