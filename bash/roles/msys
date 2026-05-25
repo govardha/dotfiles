@@ -1,0 +1,17 @@
+# Role: msys — MSYS2/MinGW bash on Windows
+
+# No neovim; use native vim
+unalias vi 2>/dev/null
+unalias vim 2>/dev/null
+export EDITOR=vim
+
+# Homebrew doesn't exist here
+unset HOMEBREW_PREFIX HOMEBREW_CELLAR HOMEBREW_REPOSITORY 2>/dev/null
+
+# Fix Windows paths if needed
+export PATH="${PATH}:/c/Windows/System32"
+
+# logger may not exist — silence install.sh-style calls
+if ! command -v logger &>/dev/null; then
+  logger() { :; }
+fi
