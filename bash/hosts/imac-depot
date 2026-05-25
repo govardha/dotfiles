@@ -1,0 +1,4 @@
+# hosts/imac-depot — overrides for imac-depot
+
+# Docker completions (available on this host)
+[[ -f /usr/share/bash-completion/completions/docker ]] && source /usr/share/bash-completion/completions/docker

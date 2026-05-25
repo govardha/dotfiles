@@ -1,0 +1,55 @@
+# bash_profile.common — shared login shell config
+
+set -o vi
+
+# Source bashrc for interactive bits
+[[ -f "${HOME}/.bashrc" ]] && source "${HOME}/.bashrc"
+
+# PATH additions
+export PATH="${PATH}:${HOME}/bin"
+export PATH="${PATH}:/opt/nvim/bin"
+
+# Pyenv
+export PYENV_ROOT="${HOME}/.pyenv"
+[[ -d "${PYENV_ROOT}/bin" ]] && export PATH="${PYENV_ROOT}/bin:${PATH}"
+if command -v pyenv &>/dev/null; then
+  eval "$(pyenv init - bash)"
+fi
+
+# AWS profile switcher
+_getprofiles() {
+  COMPREPLY=($(compgen -W "$(sed -n 's#^\[profile \(.*\)\]#\1#p' ~/.aws/config | sort -u)" -- "${COMP_WORDS[1]}"))
+}
+
+aps() {
+  if [[ -z "${1}" ]]; then
+    echo "${AWS_PROFILE}"
+    return
+  fi
+  export AWS_PROFILE="${1}"
+}
+
+complete -F _getprofiles aps
+
+# CDK completions
+if command -v cdk &>/dev/null; then
+  _cdk_yargs_completions() {
+    local cur_word args type_list
+    cur_word="${COMP_WORDS[COMP_CWORD]}"
+    args=("${COMP_WORDS[@]}")
+    type_list=$(cdk --get-yargs-completions "${args[@]}")
+    COMPREPLY=($(compgen -W "${type_list}" -- "${cur_word}"))
+    if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
+      COMPREPLY=()
+    fi
+    return 0
+  }
+  complete -o default -F _cdk_yargs_completions cdk
+fi
+
+# Bun
+export BUN_INSTALL="${HOME}/.bun"
+[[ -d "${BUN_INSTALL}/bin" ]] && export PATH="${BUN_INSTALL}/bin:${PATH}"
+
+# Rich prompt: user@host:dir (AWS:profile) (⚡provider) (PY:version) (git-branch)
+export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(if [[ -n "${AWS_PROFILE}" ]]; then echo " (\033[01;33mAWS:${AWS_PROFILE}\033[00m)"; fi)$(if [[ -n "${CLAUDE_PROVIDER}" ]]; then echo " (\033[0;35m⚡${CLAUDE_PROVIDER}\033[00m)"; fi)$(if command -v pyenv >/dev/null 2>&1; then echo " (\033[01;36mPY:$(pyenv version-name)\033[00m)"; fi)\[\033[01;33m\]$(parse_git_branch)\[\033[00m\]\$ '

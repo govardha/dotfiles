@@ -1,0 +1,14 @@
+# --- dotfiles loader ---
+# Kiro CLI pre block. Keep at the top of this file.
+[[ -f "${HOME}/.local/share/kiro-cli/shell/bash_profile.pre.bash" ]] && builtin source "${HOME}/.local/share/kiro-cli/shell/bash_profile.pre.bash"
+
+DOTFILES="${HOME}/src/dotfiles/bash"
+
+# Core
+[[ -f "${DOTFILES}/bash_profile.common" ]] && source "${DOTFILES}/bash_profile.common"
+
+# Host-specific (bash_profile layer — rarely needed, most goes in bashrc)
+# [[ -f "${DOTFILES}/hosts/$(hostname -s).profile" ]] && source "${DOTFILES}/hosts/$(hostname -s).profile"
+
+# Kiro CLI post block. Keep at the bottom of this file.
+[[ -f "${HOME}/.local/share/kiro-cli/shell/bash_profile.post.bash" ]] && builtin source "${HOME}/.local/share/kiro-cli/shell/bash_profile.post.bash"
