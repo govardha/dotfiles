@@ -11,4 +11,4 @@ __wezterm_set_user_var() {
   fi
 }
 
-__wezterm_set_user_var HOST "$(uname -n)"
+[[ $- == *i* ]] && __wezterm_set_user_var HOST "$(uname -n)"
