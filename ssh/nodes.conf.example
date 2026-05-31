@@ -1,0 +1,27 @@
+# SSH Node Definitions — COPY to nodes.conf and fill in your values
+# This file is committed; nodes.conf is gitignored (contains real hostnames)
+#
+# Format:
+#   [group:<filename>]           — target file in ~/.ssh/config.d/
+#   alias hostname user [af] [lan_ip]
+#
+# Fields:
+#   alias    — SSH alias (what you type: ssh <alias>)
+#   hostname — FQDN or IP
+#   user     — remote username
+#   af       — address family: inet (IPv4), inet6 (IPv6), or omit for both
+#   lan_ip   — optional LAN IP for auto-switching override
+#
+# Lines starting with # are comments. Blank lines are ignored.
+
+[group:10-depot-nodes]
+mybox          mybox.example-tailnet.ts.net       ubuntu    -       192.168.1.92
+mybox2         mybox2.example-tailnet.ts.net      ubuntu    -       192.168.1.60
+
+[group:20-vpn-nodes]
+vpn1           vpn1.example-tailnet.ts.net        ubuntu
+vpn2           vpn2.example-tailnet.ts.net        ubuntu
+
+[group:30-other-nodes]
+seedbox        seed.example.com                   myuser    inet
+seedbox6       seed.example.com                   myuser    inet6
