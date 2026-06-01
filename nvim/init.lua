@@ -11,6 +11,7 @@ vim.filetype.add({
     j2 = "jinja",
     jinja = "jinja",
     jinja2 = "jinja",
+    json = "jsonc",
   },
   pattern = {
     [".*%.yaml%.j2"] = "yaml.jinja",
@@ -19,6 +20,9 @@ vim.filetype.add({
     [".*%.xml%.j2"] = "xml.jinja",
   },
 })
+
+-- Use the json treesitter parser for jsonc filetype
+vim.treesitter.language.register("json", "jsonc")
 
 
 if vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1 then
