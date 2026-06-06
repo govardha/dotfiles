@@ -16,10 +16,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/branch-guard.sh"
-          },
-          {
-            "type": "command",
             "command": "~/.claude/hooks/global/inject-claude-env.sh"
           },
           {

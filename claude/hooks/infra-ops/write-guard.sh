@@ -16,11 +16,10 @@ fi
 # Allowed write paths outside git repos
 allowed_prefixes=(
   "/home/${USER}"
+  "/apps/${USER}"
+  "/apps/ops"
   "/tmp"
   "/var/tmp"
-  "/opt/scripts"
-  "/opt/monitoring"
-  "/opt/cronjobs"
 )
 
 for prefix in "${allowed_prefixes[@]}"; do

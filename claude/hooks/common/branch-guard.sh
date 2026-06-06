@@ -5,8 +5,8 @@ set -euo pipefail
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
 
 if [[ "${BRANCH}" == "main" || "${BRANCH}" == "master" ]]; then
-  echo '{"decision":"block","reason":"Cannot write files on main/master. Create a feature branch first."}'
+  echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Cannot write files on main/master. Create a feature branch first."}}'
   exit 0
 fi
 
-echo '{"decision":"allow"}'
+echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}'

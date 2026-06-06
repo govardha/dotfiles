@@ -41,4 +41,15 @@ if echo "${cmd}" | grep -qE 'argocd app sync.*(prod|prd)'; then
   exit 2
 fi
 
+# ── Git: Check for staged changes before push ────────────────────────────────
+if echo "${cmd}" | grep -qE '^git push'; then
+  if ! git diff --cached --quiet; then
+    echo "BLOCKED: Staged changes exist but are not committed." >&2
+    echo "Run 'git status' and commit your staged changes before pushing." >&2
+    echo "" >&2
+    git diff --cached --name-only >&2
+    exit 2
+  fi
+fi
+
 exit 0
