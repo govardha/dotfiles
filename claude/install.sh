@@ -111,7 +111,7 @@ if [[ -d "${DOTFILES_DIR}/memory" ]]; then
 fi
 
 # ── Common hooks (always installed) ──────────────────────────────────────────
-for hook in audit.sh prompt-guard.sh session-start.sh branch-guard.sh bkt-wrapper; do
+for hook in audit.sh prompt-guard.sh session-start.sh branch-guard.sh git-guard.sh bkt-wrapper; do
   [[ -f "${DOTFILES_DIR}/hooks/common/${hook}" ]] || continue
   safe_copy "${DOTFILES_DIR}/hooks/common/${hook}" "${HOOKS_DIR}/${hook}"
 done
