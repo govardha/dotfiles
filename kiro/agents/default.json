@@ -20,6 +20,14 @@
     "preToolUse": [
       {
         "matcher": "execute_bash",
+        "command": "~/.kiro/hooks/branch-guard.sh"
+      },
+      {
+        "matcher": "fs_write",
+        "command": "~/.kiro/hooks/branch-guard.sh"
+      },
+      {
+        "matcher": "execute_bash",
         "command": "~/.kiro/hooks/bash-guard.sh"
       },
       {
