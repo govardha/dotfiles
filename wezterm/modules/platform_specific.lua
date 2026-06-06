@@ -127,6 +127,7 @@ function M.apply(config)
     table.insert(launch_menu, { label = "---" })
   elseif wezterm.target_triple:match("linux") then
     -- Linux/Ubuntu Specific Configurations
+    config.enable_wayland = false
     config.font = wezterm.font("JetBrains Mono")
 
     table.insert(launch_menu, {
