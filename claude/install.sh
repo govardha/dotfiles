@@ -102,19 +102,6 @@ safe_copy "${DOTFILES_DIR}/.claude-commit" "${CLAUDE_DIR}/.claude-commit"
 # ── Install global CLAUDE.md ──────────────────────────────────────────────────
 safe_copy "${DOTFILES_DIR}/CLAUDE.md" "${CLAUDE_DIR}/CLAUDE.md"
 
-# ── Copy skills directory (applicable to all profiles) ──────────────────────
-if [[ -d "${DOTFILES_DIR}/skills" ]]; then
-  mkdir -p "${CLAUDE_DIR}/skills"
-  for skill_dir in "${DOTFILES_DIR}"/skills/*/; do
-    skill_name=$(basename "${skill_dir}")
-    mkdir -p "${CLAUDE_DIR}/skills/${skill_name}"
-    for skill_file in "${skill_dir}"*; do
-      [[ -f "${skill_file}" ]] || continue
-      safe_copy "${skill_file}" "${CLAUDE_DIR}/skills/${skill_name}/$(basename "${skill_file}")"
-    done
-  done
-fi
-
 # ── Copy team baseline memories (non-destructive: new files only) ────────────
 if [[ -d "${DOTFILES_DIR}/memory" ]]; then
   for memory in "${DOTFILES_DIR}"/memory/*.md; do
@@ -124,7 +111,7 @@ if [[ -d "${DOTFILES_DIR}/memory" ]]; then
 fi
 
 # ── Common hooks (always installed) ──────────────────────────────────────────
-for hook in audit.sh prompt-guard.sh session-start.sh branch-guard.sh; do
+for hook in audit.sh prompt-guard.sh session-start.sh branch-guard.sh bkt-wrapper; do
   [[ -f "${DOTFILES_DIR}/hooks/common/${hook}" ]] || continue
   safe_copy "${DOTFILES_DIR}/hooks/common/${hook}" "${HOOKS_DIR}/${hook}"
 done

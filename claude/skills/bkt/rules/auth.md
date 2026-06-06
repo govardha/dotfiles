@@ -79,7 +79,7 @@ For Bitbucket Cloud (--kind cloud), the simplest method is --web-token, which
 opens the Atlassian API token page and prompts for the token locally.
 Browser-based OAuth via --web works out of the box in official release
 binaries. For source and Nix builds, set BKT_OAUTH_CLIENT_ID and
-BKT_OAUTH_CLIENT_SECRET before running --web. The CLI receives a short-lived
+BKT_OAUTH_CLIENT_SECRET before running `--web`. The CLI receives a short-lived
 access token that is automatically refreshed.
 
 Credentials are verified against the remote host before being stored. If no
@@ -222,4 +222,3 @@ bkt auth status [flags]
   # Get status as JSON
   bkt auth status --output json
 ```
-

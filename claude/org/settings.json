@@ -14,6 +14,19 @@
   "companyAnnouncements": [
     "💰 COST: Haiku ($) → Sonnet ($$) → Opus ($$$) | effort: medium ($) → high ($$) → max ($$$)\n💡 'ultrathink' in prompt = deep reasoning, one turn only\n📊 CHECK USAGE: claude.ai → Settings → Usage | console.anthropic.com → Usage\n🚨 IGNORE 'Default (Recommended)' in /model picker — it points to Opus ($$$) for Enterprise tier. Default is Haiku ($).\n🚨 HIT $200 LIMIT? Switch to Haiku + /effort medium. Check for runaway agentic loops."
   ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude/hooks/common/pr-footer.sh"
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "defaultMode": "acceptEdits",
     "disableBypassPermissionsMode": "disable",
