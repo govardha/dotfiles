@@ -1,0 +1,17 @@
+#!/bin/bash
+# Global git hook: Add Claude co-author footer only when Claude Code is committing
+# Set CLAUDE_CODE=1 env var when Claude commits; humans commit normally (no footer)
+set -euo pipefail
+
+COMMIT_MSG_FILE="$1"
+
+# Only add footer if CLAUDE_CODE env var is set (Claude is committing)
+if [[ "${CLAUDE_CODE:-0}" == "1" ]]; then
+  FOOTER="Co-Authored-By: Claude <noreply@anthropic.com>"
+
+  # Prevent duplicate footers
+  if ! grep -q "Co-Authored-By: Claude" "$COMMIT_MSG_FILE"; then
+    echo "" >> "$COMMIT_MSG_FILE"
+    echo "$FOOTER" >> "$COMMIT_MSG_FILE"
+  fi
+fi
