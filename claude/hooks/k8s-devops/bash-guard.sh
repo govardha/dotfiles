@@ -41,6 +41,15 @@ if echo "${cmd}" | grep -qE 'argocd app sync.*(prod|prd)'; then
   exit 2
 fi
 
+# ── Git: Block add/commit on main/master ─────────────────────────────────────
+if echo "${cmd}" | grep -qE '^git (add|commit)'; then
+  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [[ "${current_branch}" == "main" || "${current_branch}" == "master" ]]; then
+    echo "BLOCKED: git add/commit on ${current_branch}. Create a feature branch first." >&2
+    exit 2
+  fi
+fi
+
 # ── Git: Check for staged changes before push ────────────────────────────────
 if echo "${cmd}" | grep -qE '^git push'; then
   if ! git diff --cached --quiet; then
