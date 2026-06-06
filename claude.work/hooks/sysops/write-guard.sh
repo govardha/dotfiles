@@ -10,10 +10,10 @@ file=$(echo "${input}" | jq -r '.tool_input.file_path // empty')
 # Allowed write paths for no-sudo sysops
 allowed_prefixes=(
   "/home/${USER}"
-  "/apps/${USER}"
-  "/apps/ops"
   "/tmp"
   "/var/tmp"
+  "/apps/${USER}"
+  "/apps/ops"
 )
 
 is_allowed=false

@@ -12,9 +12,8 @@ allowed_prefixes=(
   "/home/${USER}"
   "/tmp"
   "/var/tmp"
-  "/opt/scripts"
-  "/opt/monitoring"
-  "/opt/cronjobs"
+  "/apps/${USER}"
+  "/apps/ops"
 )
 
 is_allowed=false

@@ -37,6 +37,17 @@
 
 - Indentation: 2 spaces (StyLua defaults)
 
+## Bitbucket vs GitHub
+
+- On-prem Bitbucket repos: use `bkt`
+- GitHub repos: use `gh`
+- Dual remote repos: check repo-level CLAUDE.md for source of truth
+
+## Tooling
+
+- bkt binary: /apps/ops/bin/bkt (wrapper, auto-detects project/repo)
+- gh binary: standard PATH
+
 ## General
 
 - Default indentation: 2 spaces

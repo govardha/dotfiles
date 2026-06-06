@@ -18,9 +18,8 @@ allowed_prefixes=(
   "/home/${USER}"
   "/tmp"
   "/var/tmp"
-  "/opt/scripts"
-  "/opt/monitoring"
-  "/opt/cronjobs"
+  "/apps/${USER}"
+  "/apps/ops"
 )
 
 for prefix in "${allowed_prefixes[@]}"; do
