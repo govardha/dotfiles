@@ -24,6 +24,10 @@
           },
           {
             "type": "command",
+            "command": "~/.claude/hooks/pr-footer.sh"
+          },
+          {
+            "type": "command",
             "command": "~/.claude/hooks/bash-guard.sh"
           }
         ]

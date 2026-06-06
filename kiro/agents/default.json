@@ -31,6 +31,10 @@
         "command": "~/.kiro/hooks/bash-guard.sh"
       },
       {
+        "matcher": "execute_bash",
+        "command": "~/.kiro/hooks/pr-footer.sh"
+      },
+      {
         "matcher": "fs_write",
         "command": "~/.kiro/hooks/write-guard.sh"
       },
