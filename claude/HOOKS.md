@@ -56,6 +56,7 @@ destructive git/rm commands.
 | `session-start.sh` | SessionStart | Detects host environment (prod/staging/dev), injects context rules |
 | `prompt-guard.sh` | UserPromptSubmit | Blocks prompts >8000 chars, blocks "summarize entire codebase" patterns, injects cost reminder on bulk reads |
 | `audit.sh` | PostToolUse (async) | Appends JSONL log entry with timestamp, user, host, tool, target |
+| `git-guard.sh` | PreToolUse | Blocks commits/adds on main/master, blocks push with uncommitted staged changes |
 
 ### infra-ops (combined profile)
 
