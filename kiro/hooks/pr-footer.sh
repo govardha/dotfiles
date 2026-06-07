@@ -15,5 +15,5 @@ if echo "${input}" | grep -qF "Co-Authored-By: Kiro"; then
   exit 0
 fi
 
-echo "REMINDER: Include this footer in the PR body: Co-Authored-By: Kiro <noreply@kiro.dev>"
-exit 0
+echo "BLOCKED: PR body must include: Co-Authored-By: Kiro <noreply@kiro.dev>" >&2
+exit 2
