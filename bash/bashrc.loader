@@ -7,6 +7,9 @@ DOTFILES="${HOME}/src/dotfiles/bash"
 # Core
 [[ -f "${DOTFILES}/bashrc.common" ]] && source "${DOTFILES}/bashrc.common"
 
+# Prompt
+[[ -f "${DOTFILES}/bashrc.ps1" ]] && source "${DOTFILES}/bashrc.ps1"
+
 # Host-specific
 _dotfiles_host="${HOSTNAME%%.*}"
 [[ -z "${_dotfiles_host}" ]] && _dotfiles_host="$(hostname 2>/dev/null)" && _dotfiles_host="${_dotfiles_host%%.*}"

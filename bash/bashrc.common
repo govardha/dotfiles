@@ -1,22 +1,5 @@
 # bashrc.common — shared interactive shell config
 
-parse_git_branch ()
-{
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
-}
-
-# Prompt with pyenv version
-python_version() {
-  if command -v pyenv &>/dev/null; then
-    local ver
-    ver=$(pyenv version-name 2>/dev/null)
-    if [[ "${ver}" != "system" ]]; then
-      echo -e " \033[0;36m(py:${ver})\033[00m"
-    fi
-  fi
-}
-
-export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$([ -n "$AWS_PROFILE" ] && echo " \[\033[01;33m\](AWS:$AWS_PROFILE)\[\033[00m\]")\[\033[01;33m\]$(parse_git_branch)\[\033[00m\]\$ '
 
 # Homebrew
 if [[ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
