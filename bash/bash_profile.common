@@ -51,5 +51,4 @@ fi
 export BUN_INSTALL="${HOME}/.bun"
 [[ -d "${BUN_INSTALL}/bin" ]] && export PATH="${BUN_INSTALL}/bin:${PATH}"
 
-# Rich prompt: user@host:dir (AWS:profile) (⚡provider) (PY:version) (git-branch)
-export PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(if [[ -n "${AWS_PROFILE}" ]]; then echo " (\033[01;33mAWS:${AWS_PROFILE}\033[00m)"; fi)$(if [[ -n "${CLAUDE_PROVIDER}" ]]; then echo " (\033[0;35m⚡${CLAUDE_PROVIDER}\033[00m)"; fi)$(if command -v pyenv >/dev/null 2>&1; then echo " (\033[01;36mPY:$(pyenv version-name)\033[00m)"; fi)\[\033[01;33m\]$(parse_git_branch)\[\033[00m\]\$ '
+# PS1 is set by bashrc.ps1 (sourced via .bashrc above)
