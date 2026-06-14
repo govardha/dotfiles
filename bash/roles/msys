@@ -1,7 +1,11 @@
 # Role: msys — MSYS2/MinGW bash on Windows
 
-# No kube on MSYS2 — override PS1 without ps1_kube
-export PS1="${GREEN_COLOR}┌─[${NO_COLOR}\u@\h${GREEN_COLOR}]─[${BLUE_COLOR}\$(smart_pwd)${GREEN_COLOR}]${NO_COLOR}\n${YELLOW_COLOR}\$(parse_git_branch) \$(ps1_pyenv)\$(ps1_aws)${NO_COLOR}\n${GREEN_COLOR}└──╼${NO_COLOR} \$ "
+# Cygwin/MSYS2 bash mangles \$() in PS1; use PROMPT_COMMAND instead
+_msys_ps1() {
+  local g='\[\033[01;32m\]' b='\[\033[01;34m\]' y='\[\033[01;33m\]' r='\[\033[00m\]'
+  PS1="${g}┌─[${r}\u@\h${g}]─[${b}$(smart_pwd)${g}]${r}\n${y}$(parse_git_branch) $(ps1_pyenv)$(ps1_aws)${r}\n${g}└──╼${r} \$ "
+}
+PROMPT_COMMAND=_msys_ps1
 
 # No neovim; use native vim
 unalias vi 2>/dev/null
