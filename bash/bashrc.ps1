@@ -52,4 +52,12 @@ ps1_aws() {
 #   ┌─[user@host]─[path]
 #   [git-branch] PY:version [AWS:profile]
 #   └──╼ $
-export PS1="${GREEN_COLOR}┌─[${NO_COLOR}\u@\h${GREEN_COLOR}]─[${BLUE_COLOR}\$(smart_pwd)${GREEN_COLOR}]${NO_COLOR}\n${YELLOW_COLOR}\$(parse_git_branch) \$(ps1_pyenv)\$(ps1_aws)\$(ps1_kube)${NO_COLOR}\n${GREEN_COLOR}└──╼${NO_COLOR} \$ "
+if [[ "$(uname -o 2>/dev/null)" == @(Cygwin|Msys) ]]; then
+  # Cygwin/MSYS2 bash can't parse \$() in PS1; use PROMPT_COMMAND
+  _build_ps1() {
+    PS1="${GREEN_COLOR}┌─[${NO_COLOR}\u@\h${GREEN_COLOR}]─[${BLUE_COLOR}$(smart_pwd)${GREEN_COLOR}]${NO_COLOR}\n${YELLOW_COLOR}$(parse_git_branch) $(ps1_pyenv)$(ps1_aws)${NO_COLOR}\n${GREEN_COLOR}└──╼${NO_COLOR} \$ "
+  }
+  PROMPT_COMMAND=_build_ps1
+else
+  export PS1="${GREEN_COLOR}┌─[${NO_COLOR}\u@\h${GREEN_COLOR}]─[${BLUE_COLOR}\$(smart_pwd)${GREEN_COLOR}]${NO_COLOR}\n${YELLOW_COLOR}\$(parse_git_branch) \$(ps1_pyenv)\$(ps1_aws)\$(ps1_kube)${NO_COLOR}\n${GREEN_COLOR}└──╼${NO_COLOR} \$ "
+fi
