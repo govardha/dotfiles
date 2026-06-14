@@ -1,5 +1,8 @@
 # Role: msys — MSYS2/MinGW bash on Windows
 
+# No kube on MSYS2 — override PS1 without ps1_kube
+export PS1="${GREEN_COLOR}┌─[${NO_COLOR}\u@\h${GREEN_COLOR}]─[${BLUE_COLOR}\$(smart_pwd)${GREEN_COLOR}]${NO_COLOR}\n${YELLOW_COLOR}\$(parse_git_branch) \$(ps1_pyenv)\$(ps1_aws)${NO_COLOR}\n${GREEN_COLOR}└──╼${NO_COLOR} \$ "
+
 # No neovim; use native vim
 unalias vi 2>/dev/null
 unalias vim 2>/dev/null
