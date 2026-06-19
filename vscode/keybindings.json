@@ -1,0 +1,24 @@
+[
+  // --- COPY FROM VISUAL MODE ---
+  {
+    "key": "ctrl+c",
+    "command": "editor.action.clipboardCopyAction",
+    "when": "editorTextFocus && neovim.mode == 'visual'"
+  },
+  {
+    "key": "cmd+c",
+    "command": "editor.action.clipboardCopyAction",
+    "when": "editorTextFocus && neovim.mode == 'visual'"
+  },
+  // --- PASTE INTO INSERT MODE ---
+  {
+    "key": "ctrl+v",
+    "command": "editor.action.clipboardPasteAction",
+    "when": "editorTextFocus && neovim.mode == 'insert'"
+  },
+  {
+    "key": "cmd+v",
+    "command": "editor.action.clipboardPasteAction",
+    "when": "editorTextFocus && neovim.mode == 'insert'"
+  }
+]

@@ -1,0 +1,165 @@
+{
+  // ==========================================================
+  // 1. AIR-GAP, PRIVACY & PERFORMANCE (DISABLE AUTOMATION & TELEMETRY)
+  // ==========================================================
+  "chat.disableAIFeatures": true,
+  "workbench.settings.enableNaturalLanguageSearch": false,
+  "extensions.ignoreRecommendations": true,
+  "npm.fetchOnlinePackageInfo": false,
+  "python.experiments.enabled": false,
+  // ==========================================================
+  // 2. FILE BEHAVIOR, AUTO-SAVE & ASSOCIATIONS
+  // ==========================================================
+  "files.autoSave": "onFocusChange",
+  "files.associations": {
+    "*.json": "jsonc",
+    ".sh*": "shellscript",
+    ".bash*": "shellscript",
+    "Dockerfile*": "dockerfile",
+    // Helm templates MUST come before generic YAML
+    "**/templates/*.yaml": "helm",
+    "**/templates/*.yml": "helm",
+    "**/templates/*.tpl": "helm",
+    "**/templates/**/*.yaml": "helm",
+    "**/templates/**/*.yml": "helm",
+    "**/templates/**/*.tpl": "helm",
+    // Generic YAML catchall AFTER helm
+    "*.yaml": "yaml",
+    "*.yml": "yaml"
+  },
+  // ==========================================================
+  // 3. YAML & JSON (PORTABLE SCHEMAS & NO DOWNLOADS)
+  // ==========================================================
+  "json.schemaDownload.enable": false,
+  "yaml.schemaStore.enable": false,
+  "yaml.format.enable": true,
+  "yaml.validate": false,
+  "yaml.hover": true,
+  "yaml.completion": true,
+  "yaml.customTags": ["!Reference", "!Sub", "!Vault", "!reference sequence"],
+  "yaml.schemas": {
+    "~/.schemas/kustomization.json": [
+      "kustomization.yaml",
+      "kustomization.yml"
+    ],
+    "~/.schemas/compose-spec.json": [
+      "**/docker-compose*.yml",
+      "**/docker-compose*.yaml",
+      "compose*.yaml",
+      "compose*.yml"
+    ],
+    "~/.schemas/k8s-v1.34-all.json": [
+      "**/k8s/**/*.yaml",
+      "**/k8s/**/*.yml",
+      "**/kubernetes/**/*.yaml",
+      "**/kubernetes/**/*.yml",
+      "**/manifests/**/*.yaml",
+      "**/manifests/**/*.yml"
+    ],
+    "~/.schemas/argo-application.json": [
+      "**/argocd/**/*application*.yaml",
+      "**/argocd/**/*application*.yml",
+      "**/*application.yaml",
+      "**/*application.yml"
+    ],
+    "~/.schemas/argo-applicationset.json": [
+      "**/argocd/**/*applicationset*.yaml",
+      "**/argocd/**/*applicationset*.yml",
+      "**/*applicationset.yaml"
+    ],
+    "~/.schemas/argo-appproject.json": [
+      "**/argocd/**/*appproject*.yaml",
+      "**/argocd/**/*appproject*.yml",
+      "**/*appproject.yaml"
+    ],
+    "~/.schemas/prom-alertmanager.json": [
+      "**/monitoring/**/*alertmanager.yaml",
+      "**/*alertmanager.yaml"
+    ],
+    "~/.schemas/prom-alertmanagerconfig.json": [
+      "**/monitoring/**/*alertmanagerconfig*.yaml"
+    ],
+    "~/.schemas/prom-podmonitor.json": [
+      "**/monitoring/**/*podmonitor*.yaml",
+      "**/*podmonitor.yaml"
+    ],
+    "~/.schemas/prom-servicemonitor.json": [
+      "**/monitoring/**/*servicemonitor*.yaml",
+      "**/*servicemonitor.yaml"
+    ],
+    "~/.schemas/prom-prometheusrule.json": [
+      "**/monitoring/**/*prometheusrule*.yaml",
+      "**/*rule*.yaml"
+    ],
+    "~/.schemas/splunk-otel-values-schema.json": [
+      "**/splunk/**/*values*.yaml",
+      "**/otel/**/*values*.yaml"
+    ]
+  },
+  // ==========================================================
+  // 4. LANGUAGE SPECIFIC FORMATTERS & LINTERS
+  // ==========================================================
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": true
+  },
+  "[helm-template]": {
+    "editor.defaultFormatter": "ms-kubernetes-tools.vscode-kubernetes-tools"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.formatOnSave": true
+  },
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format",
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  // ==========================================================
+  // 5. PYTHON ENVIRONMENTS & TOOLING (RUFF NATIVE)
+  // ==========================================================
+  "python.defaultInterpreterPath": "/apps/ops/python3/bin/python3",
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.analysis.typeCheckingMode": "standard",
+  "python.venvFolders": [".venv", "venv", ".pyenv"],
+  "ruff.nativeServer": true,
+  "ruff.lint.enable": true,
+  "ruff.format.preview": true,
+  // ==========================================================
+  // 6. SHELL SCRIPT & DOCUMENT ANALYSIS (shfmt / shellcheck)
+  // ==========================================================
+  "shellformat.path": "/apps/ops/bin/shfmt",
+  "shellformat.effectLanguages": [
+    "shellscript",
+    "dockerfile",
+    "dotenv",
+    "ignore",
+    "gitignore",
+    "properties",
+    "spring-boot-properties"
+  ],
+  "shellcheck.run": "onType",
+  "shellcheck.enable": true,
+  "markdown-mermaid.lightModeTheme": "dark",
+  // ==========================================================
+  // 7. GITLENS (SILENCED PRO & TELEMETRY MINING)
+  // ==========================================================
+  "gitlens.plusFeatures.enabled": false,
+  "gitlens.showWhatsNewAfterUpgrades": false,
+  "gitlens.integrations.enabled": false,
+  "gitlens.ai.enabled": false,
+  "gitlens.graph.statusBar.enabled": false
+}
