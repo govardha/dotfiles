@@ -139,7 +139,11 @@
   "python.terminal.activateEnvironment": true,
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.analysis.typeCheckingMode": "standard",
-  "python.venvFolders": [".venv", "venv", ".pyenv"],
+  "python.venvFolders": [
+    ".venv",
+    "venv",
+    ".pyenv"
+  ],
   "ruff.nativeServer": true,
   "ruff.lint.enable": true,
   "ruff.format.preview": true,
@@ -187,5 +191,6 @@
   "gitlens.launchpad.indicator.polling.enabled": false,
   "gitlens.launchpad.allowMultiple": false,
   "gitlens.telemetry.enabled": false,
-  "gitlens.advanced.repositorySearch.enabled": false
+  "gitlens.advanced.repositorySearch.enabled": false,
+  "aws.telemetry": false,
 }
