@@ -10,6 +10,7 @@
   "workbench.settings.showAISearchToggle": false,
   "security.workspace.trust.enabled": false,
   "security.workspace.trust.banner": "never",
+  "update.showReleaseNotes": false,
   // ==========================================================
   // EXTENSION MANAGEMENT & SCM
   // ==========================================================
