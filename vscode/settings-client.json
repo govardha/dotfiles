@@ -1,0 +1,45 @@
+{
+  // ==========================================================
+  // APPLICATION & PRIVACY (Local Client)
+  // ==========================================================
+  "telemetry.telemetryLevel": "off",
+  "update.mode": "none",
+  "workbench.startupEditor": "none",
+  "workbench.enableExperiments": false,
+  "chat.titleBar.signIn.enabled": false,
+  "workbench.settings.showAISearchToggle": false,
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.banner": "never",
+  // ==========================================================
+  // EXTENSION MANAGEMENT & SCM
+  // ==========================================================
+  "extensions.autoUpdate": false,
+  "extensions.autoCheckUpdates": false,
+  "extensions.ignoreRecommendations": true,
+  "git.autofetch": "all",
+  // ==========================================================
+  // REMOTE SSH CONFIGURATION
+  // ==========================================================
+  "remote.SSH.remotePlatform": {
+    "imac-depot": "linux",
+    "rinku-depot-ts": "linux",
+    "rinku-depot2-ts": "linux",
+    "bala-depot-ts": "linux",
+    "vpn": "linux",
+    "venky-depot-ts": "linux"
+  },
+  // ==========================================================
+  // EDITOR & UI APPEARANCE (Personal Workspace Flavor)
+  // ==========================================================
+  "workbench.colorTheme": "Tokyo Night AltSynt",
+  "editor.fontFamily": "'JetBrains Mono', monospace",
+  "editor.fontSize": 14,
+  "editor.fontLigatures": true,
+  // ==========================================================
+  // NEOVIM INTEGRATION (Platform-Specific Windows Path)
+  // ==========================================================
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1
+  },
+  "vscode-neovim.neovimExecutablePaths.win32": "C:\\DevSoftware\\msys64\\ucrt64\\bin\\nvim.exe"
+}
