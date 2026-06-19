@@ -36,7 +36,12 @@
   "yaml.validate": false,
   "yaml.hover": true,
   "yaml.completion": true,
-  "yaml.customTags": ["!Reference", "!Sub", "!Vault", "!reference sequence"],
+  "yaml.customTags": [
+    "!Reference",
+    "!Sub",
+    "!Vault",
+    "!reference sequence"
+  ],
   "yaml.schemas": {
     "~/.schemas/kustomization.json": [
       "kustomization.yaml",
@@ -161,5 +166,26 @@
   "gitlens.showWhatsNewAfterUpgrades": false,
   "gitlens.integrations.enabled": false,
   "gitlens.ai.enabled": false,
-  "gitlens.graph.statusBar.enabled": false
+  "gitlens.graph.statusBar.enabled": false,
+  "gitlens.graph.allowMultiple": false,
+  "gitlens.graph.minimap.enabled": false,
+  "gitlens.graph.scrollMarkers.enabled": false,
+  "gitlens.graph.sidebar.enabled": false,
+  "gitlens.graph.sidebar.pinned": false,
+  "gitlens.graph.showUpstreamStatus": false,
+  "gitlens.graph.issues.enabled": false,
+  "gitlens.graph.avatars": false,
+  "gitlens.graph.pullRequests.enabled": false,
+  "gitlens.graph.showGhostRefsOnRowHover": false,
+  "gitlens.graph.highlightRowsOnRefHover": false,
+  "gitlens.graph.stickyTimeline": false,
+  "gitlens.graph.showWorktreeWipStats": false,
+  "gitlens.graph.searchAutocompleteOnFocus": false,
+  "gitlens.graph.experimental.kanban.enabled": false,
+  "gitlens.graph.experimental.visualizations.enabled": false,
+  "gitlens.launchpad.indicator.enabled": false,
+  "gitlens.launchpad.indicator.polling.enabled": false,
+  "gitlens.launchpad.allowMultiple": false,
+  "gitlens.telemetry.enabled": false,
+  "gitlens.advanced.repositorySearch.enabled": false
 }
