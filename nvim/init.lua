@@ -24,11 +24,13 @@ vim.filetype.add({
 -- Use the json treesitter parser for jsonc filetype
 vim.treesitter.language.register("json", "jsonc")
 
-
-if vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1 then
+if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
   -- Force Unix line endings
-  vim.opt.fileformat = 'unix'
-  vim.opt.fileformats = 'unix,dos'
+  vim.opt.fileformat = "unix"
+  vim.opt.fileformats = "unix,dos"
 end
 
-require("gov.lazy")
+if not vim.g.vscode then
+  -- Full TTY neovim: load lazy.nvim and all plugins
+  require("gov.lazy")
+end
