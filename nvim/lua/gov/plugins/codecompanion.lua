@@ -63,6 +63,34 @@ return {
         end,
       },
     },
+    rules = {
+      default = {
+        description = "Common rules for all adapters",
+        is_preset = true,
+        files = {
+          ".cursorrules",
+          ".clinerules",
+          "AGENT.md",
+          "~/.kiro/KIRO.md",
+          "KIRO.md",
+        },
+      },
+      claude = {
+        description = "Claude Code rules",
+        parser = "claude",
+        files = {
+          "~/.claude/CLAUDE.md",
+          "CLAUDE.md",
+          "CLAUDE.local.md",
+        },
+      },
+      opts = {
+        chat = {
+          enabled = true,
+          autoload = "default",
+        },
+      },
+    },
     opts = {
       log_level = "DEBUG",
     },
