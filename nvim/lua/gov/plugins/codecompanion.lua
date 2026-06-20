@@ -1,97 +1,94 @@
 -- nvim/lua/gov/plugins/codecompanion.lua
 --
 -- CodeCompanion plugin config: AI-powered coding assistant for Neovim.
--- Supports multiple LLM backends (Groq, OpenRouter, Claude Code)
--- via the openai_compatible adapter interface.
+-- ACP agents: kiro (home default), claude_code (work)
+-- HTTP adapters: openrouter (occasional use)
 --
 -- Env vars required:
---   GROQ_API_KEY      – for Groq adapter
 --   OPENROUTER_API_KEY – for OpenRouter adapter
+--   CLAUDE_CODE_OAUTH_TOKEN – for Claude Code (or use API key auth)
 --
 return {
   "olimorris/codecompanion.nvim",
   cond = not vim.g.is_msys2,
-  lazy = false, -- load immediately so keymaps are always available
+  lazy = false,
   dependencies = {
-    "nvim-lua/plenary.nvim",            -- async utilities
-    "nvim-treesitter/nvim-treesitter",  -- syntax-aware context
-    "stevearc/dressing.nvim",           -- improved UI for select/input
-    "nvim-telescope/telescope.nvim",    -- fuzzy finder integration
+    "nvim-lua/plenary.nvim",
+    "nvim-treesitter/nvim-treesitter",
+    "stevearc/dressing.nvim",
+    "nvim-telescope/telescope.nvim",
   },
-  config = function()
-    local adapters = require("codecompanion.adapters")
-
-    -- 1. Groq adapter – fast inference, free tier available
-    local my_groq = adapters.extend("openai_compatible", {
-      env = {
-        url = "https://api.groq.com/openai",
-        api_key = os.getenv("GROQ_API_KEY"),
+  opts = {
+    interactions = {
+      chat = { adapter = "kiro" },
+      inline = { adapter = "openrouter" },
+    },
+    adapters = {
+      acp = {
+        kiro = function()
+          return require("codecompanion.adapters").extend("kiro", {
+            commands = {
+              default = {
+                "kiro-cli",
+                "acp",
+                "--trust-all-tools",
+              },
+            },
+          })
+        end,
+        claude_code = function()
+          return require("codecompanion.adapters").extend("claude_code", {})
+        end,
       },
-      schema = {
-        model = { default = "llama-3.3-70b-versatile" },
+      http = {
+        openrouter = function()
+          return require("codecompanion.adapters").extend("openai_compatible", {
+            name = "openrouter",
+            formatted_name = "OpenRouter",
+            env = {
+              url = "https://openrouter.ai/api",
+              api_key = "OPENROUTER_API_KEY",
+              chat_url = "/v1/chat/completions",
+            },
+            headers = {
+              ["HTTP-Referer"] = "https://github.com/olimorris/codecompanion.nvim",
+              ["X-Title"] = "CodeCompanion",
+            },
+            schema = {
+              model = {
+                default = "google/gemini-2.5-flash",
+              },
+            },
+          })
+        end,
       },
-    })
+    },
+    opts = {
+      log_level = "DEBUG",
+    },
+  },
+  keys = {
+    -- Chat: open with specific adapter
+    { "<leader>ak", "<cmd>CodeCompanionChat adapter=kiro<CR>", mode = { "n", "v" }, desc = "AI: Kiro (default)" },
+    { "<leader>ac", "<cmd>CodeCompanionChat adapter=claude_code<CR>", mode = { "n", "v" }, desc = "AI: Claude Code" },
+    { "<leader>ao", "<cmd>CodeCompanionChat adapter=openrouter<CR>", mode = { "n", "v" }, desc = "AI: OpenRouter" },
 
-    -- 2. OpenRouter adapter – gateway to many models, using free Gemini tier
-    local my_openrouter = adapters.extend("openai_compatible", {
-      env = {
-        url = "https://openrouter.ai/api/v1",
-        api_key = os.getenv("OPENROUTER_API_KEY"),
-      },
-      headers = {
-        ["HTTP-Referer"] = "https://github.com/olimorris/codecompanion.nvim",
-        ["X-Title"] = "CodeCompanion",
-      },
-      schema = {
-        model = {
-          default = "google/gemini-2.0-flash-lite-preview-02-05:free",
-        },
-      },
-    })
+    -- Inline
+    { "<leader>ai", "<cmd>CodeCompanion<CR>", mode = { "n", "v" }, desc = "AI: Inline (openrouter)" },
+    { "<leader>aI", "<cmd>CodeCompanion adapter=kiro<CR>", mode = { "n", "v" }, desc = "AI: Inline (kiro)" },
 
+    -- Chat buffer controls
+    { "<leader>at", "<cmd>CodeCompanionChat Toggle<CR>", mode = { "n", "v" }, desc = "AI: Toggle Chat" },
+    { "<C-a>", "<cmd>CodeCompanionActions<CR>", mode = { "n", "v" }, desc = "AI: Action Palette" },
+    { "ga", "<cmd>CodeCompanionChat Add<CR>", mode = "v", desc = "AI: Add selection to Chat" },
 
-    -- 4. Main setup – wire adapters into strategies
-    --    chat & agent use claude_code; inline uses groq for speed
-    require("codecompanion").setup({
-      strategies = {
-        chat = { adapter = "claude_code" },
-        inline = { adapter = my_groq },
-        agent = { adapter = "claude_code" },
-      },
-      adapters = {
-        groq = my_groq,
-        openrouter = my_openrouter,
-      },
-      opts = {
-        log_level = "DEBUG", -- TRACE|DEBUG|ERROR|INFO
-      },
-    })
-
-    -- ── Keymaps ──────────────────────────────────────────────────────
-    local map = vim.keymap.set
-
-    -- ── Chat: open with specific adapter ─────────────────────────────
-    map({ "n", "v" }, "<leader>ak", "<cmd>CodeCompanionChat adapter=kiro<CR>", { desc = "AI: Kiro (default chat)" })
-    map({ "n", "v" }, "<leader>ac", "<cmd>CodeCompanionChat adapter=claude_code<CR>", { desc = "AI: Claude Code" })
-    map({ "n", "v" }, "<leader>ag", "<cmd>CodeCompanionChat adapter=groq<CR>", { desc = "AI: Groq (free)" })
-    map({ "n", "v" }, "<leader>ao", "<cmd>CodeCompanionChat adapter=openrouter<CR>", { desc = "AI: OpenRouter" })
-
-    -- ── Inline: quick edits in-place ─────────────────────────────────
-    map({ "n", "v" }, "<leader>ai", "<cmd>CodeCompanion<CR>", { desc = "AI: Inline (groq)" })
-    map({ "n", "v" }, "<leader>aI", "<cmd>CodeCompanion adapter=openrouter<CR>", { desc = "AI: Inline (openrouter)" })
-
-    -- ── Chat buffer controls ──────────────────────────────────────────
-    map({ "n", "v" }, "<leader>at", "<cmd>CodeCompanionChat Toggle<CR>", { desc = "AI: Toggle Chat" })
-    map({ "n", "v" }, "<C-a>", "<cmd>CodeCompanionActions<CR>", { desc = "AI: Action Palette" })
-    map("v", "ga", "<cmd>CodeCompanionChat Add<CR>", { desc = "AI: Add selection to Chat" })
-
-    -- ── Prompt library (visual selection required) ────────────────────
-    map("v", "<leader>ae", "<cmd>CodeCompanion /explain<CR>", { desc = "AI: Explain code" })
-    map("v", "<leader>af", "<cmd>CodeCompanion /fix<CR>", { desc = "AI: Fix code" })
-    map("v", "<leader>aT", "<cmd>CodeCompanion /tests<CR>", { desc = "AI: Generate tests" })
-    map("n", "<leader>am", "<cmd>CodeCompanion /commit<CR>", { desc = "AI: Commit message" })
-
-    -- ── Command abbreviation: type `:cc` instead of `:CodeCompanion` ──
+    -- Prompt library
+    { "<leader>ae", "<cmd>CodeCompanion /explain<CR>", mode = "v", desc = "AI: Explain code" },
+    { "<leader>af", "<cmd>CodeCompanion /fix<CR>", mode = "v", desc = "AI: Fix code" },
+    { "<leader>aT", "<cmd>CodeCompanion /tests<CR>", mode = "v", desc = "AI: Generate tests" },
+    { "<leader>am", "<cmd>CodeCompanion /commit<CR>", mode = "n", desc = "AI: Commit message" },
+  },
+  init = function()
     vim.cmd([[cab cc CodeCompanion]])
   end,
 }
