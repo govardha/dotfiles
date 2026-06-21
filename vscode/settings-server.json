@@ -43,17 +43,17 @@
     "!reference sequence"
   ],
   "yaml.schemas": {
-    "~/.schemas/kustomization.json": [
+    "/apps/ops/schemas/kustomization.json": [
       "kustomization.yaml",
       "kustomization.yml"
     ],
-    "~/.schemas/compose-spec.json": [
+    "/apps/ops/schemas/compose-spec.json": [
       "**/docker-compose*.yml",
       "**/docker-compose*.yaml",
       "compose*.yaml",
       "compose*.yml"
     ],
-    "~/.schemas/k8s-v1.34-all.json": [
+    "/apps/ops/schemas/k8s-v1.34-all.json": [
       "**/k8s/**/*.yaml",
       "**/k8s/**/*.yml",
       "**/kubernetes/**/*.yaml",
@@ -61,42 +61,42 @@
       "**/manifests/**/*.yaml",
       "**/manifests/**/*.yml"
     ],
-    "~/.schemas/argo-application.json": [
+    "/apps/ops/schemas/argo-application.json": [
       "**/argocd/**/*application*.yaml",
       "**/argocd/**/*application*.yml",
       "**/*application.yaml",
       "**/*application.yml"
     ],
-    "~/.schemas/argo-applicationset.json": [
+    "/apps/ops/schemas/argo-applicationset.json": [
       "**/argocd/**/*applicationset*.yaml",
       "**/argocd/**/*applicationset*.yml",
       "**/*applicationset.yaml"
     ],
-    "~/.schemas/argo-appproject.json": [
+    "/apps/ops/schemas/argo-appproject.json": [
       "**/argocd/**/*appproject*.yaml",
       "**/argocd/**/*appproject*.yml",
       "**/*appproject.yaml"
     ],
-    "~/.schemas/prom-alertmanager.json": [
+    "/apps/ops/schemas/prom-alertmanager.json": [
       "**/monitoring/**/*alertmanager.yaml",
       "**/*alertmanager.yaml"
     ],
-    "~/.schemas/prom-alertmanagerconfig.json": [
+    "/apps/ops/schemas/prom-alertmanagerconfig.json": [
       "**/monitoring/**/*alertmanagerconfig*.yaml"
     ],
-    "~/.schemas/prom-podmonitor.json": [
+    "/apps/ops/schemas/prom-podmonitor.json": [
       "**/monitoring/**/*podmonitor*.yaml",
       "**/*podmonitor.yaml"
     ],
-    "~/.schemas/prom-servicemonitor.json": [
+    "/apps/ops/schemas/prom-servicemonitor.json": [
       "**/monitoring/**/*servicemonitor*.yaml",
       "**/*servicemonitor.yaml"
     ],
-    "~/.schemas/prom-prometheusrule.json": [
+    "/apps/ops/schemas/prom-prometheusrule.json": [
       "**/monitoring/**/*prometheusrule*.yaml",
       "**/*rule*.yaml"
     ],
-    "~/.schemas/splunk-otel-values-schema.json": [
+    "/apps/ops/schemas/splunk-otel-values-schema.json": [
       "**/splunk/**/*values*.yaml",
       "**/otel/**/*values*.yaml"
     ]
