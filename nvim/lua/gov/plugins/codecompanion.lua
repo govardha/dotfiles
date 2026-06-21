@@ -85,13 +85,24 @@ return {
         files = {
           ".cursorrules",
           ".clinerules",
-          "AGENT.md",
+          "AGENT.md"
+        }
+      },
+      kiro = {
+        description = "Kiro CLI rules",
+        enabled = function(chat)
+          return chat and chat.adapter and chat.adapter.name == "kiro"
+        end,
+        files = {
           "~/.kiro/KIRO.md",
           "KIRO.md"
         }
       },
       claude = {
         description = "Claude Code rules",
+        enabled = function(chat)
+          return chat and chat.adapter and chat.adapter.name == "claude_code"
+        end,
         parser = "claude",
         files = {
           "~/.claude/CLAUDE.md",
@@ -102,7 +113,7 @@ return {
       opts = {
         chat = {
           enabled = true,
-          autoload = "default"
+          autoload = { "default", "kiro", "claude" }
         }
       }
     },
