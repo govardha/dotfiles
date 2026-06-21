@@ -150,6 +150,8 @@ speed — they don't go through Kiro:
 | I want to...                          | Press          |
 |---------------------------------------|----------------|
 | Have Kiro refactor/build across files | `<leader>ak`   |
+| Run Kiro CLI in a terminal buffer     | `<leader>aK`   |
+| Run Claude CLI in a terminal buffer   | `<leader>aC`   |
 | Quick explain/fix of selected code    | `<leader>ae/af` |
 | Ask a fast question, no tools needed  | `<leader>ag`   |
 | Inline edit without opening chat      | `<leader>ai`   |
@@ -158,6 +160,46 @@ speed — they don't go through Kiro:
 | Add code to an open chat              | `ga` (visual)  |
 | Open the action palette               | `<C-a>`        |
 | Toggle the chat buffer                | `<leader>at`   |
+
+---
+
+## CLI Interaction (Terminal Mode)
+
+The CLI interaction runs agents directly in a Neovim terminal buffer via
+`:CodeCompanionCLI`. Unlike ACP (which embeds the agent as a subprocess behind
+the chat buffer), CLI gives you a raw terminal session with the agent's own TUI.
+
+### Your CLI Agents
+
+| Keymap       | Agent        | Command                            |
+|--------------|--------------|------------------------------------|
+| `<leader>aK` | kiro         | `kiro-cli chat --trust-all-tools` |
+| `<leader>aC` | claude_code  | `claude`                           |
+
+### When to Use CLI vs ACP
+
+| Scenario                                    | Use        |
+|---------------------------------------------|------------|
+| Want CodeCompanion chat UI with tool diffs  | ACP (`ak`) |
+| Want the agent's native TUI experience      | CLI (`aK`) |
+| Need agent-specific features (slash cmds)   | CLI (`aK`) |
+| Want to pass a one-off prompt               | CLI (`:CodeCompanionCLI fix the tests`) |
+
+### Usage
+
+```vim
+" Open default agent (kiro) in terminal
+:CodeCompanionCLI
+
+" Open with a prompt
+:CodeCompanionCLI refactor the auth module
+
+" Use a specific agent
+:CodeCompanionCLI agent=claude_code explain this codebase
+```
+
+The terminal buffer auto-reloads modified files (`:checktime`) when the agent
+writes to disk. Press `}` / `{` to navigate between interactions in the buffer.
 
 ---
 
