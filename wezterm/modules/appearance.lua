@@ -3,15 +3,7 @@ local wezterm = require("wezterm")
 local M = {}
 
 function M.apply(config)
-  -- Window and UI
-  -- config.color_scheme = "Catppuccin Mocha"
-  -- config.color_scheme = 'Tokyo Night (Gogh)'
-  -- config.color_scheme = "Tokyo Night"
-  -- config.color_scheme = "Tokyo Night Storm"
-  -- config.color_scheme = 'Gruvbox Material-Dark (Gogh)'
-  -- config.color_scheme = 'Selenized Black (Gogh)'
-  config.color_scheme = 'Everforest Dark Hard (Gogh)'
-
+  -- Colors synced from nvim tokyonight (night) custom palette
   config.colors = {
     foreground = "#CBE0F0",
     background = "#011628",
@@ -19,9 +11,9 @@ function M.apply(config)
     cursor_fg = "#011628",
     cursor_border = "#CBE0F0",
     selection_fg = "#CBE0F0",
-    selection_bg = "#275378",    -- Your bg_visual
-    scrollbar_thumb = "#143652", -- Your bg_highlight
-    split = "#011423",           -- Your bg_dark
+    selection_bg = "#275378",
+    scrollbar_thumb = "#143652",
+    split = "#011423",
 
     ansi = {
       "#1d202f", -- black
@@ -44,33 +36,32 @@ function M.apply(config)
       "#c0caf5", -- bright white
     },
 
-    -- Arbitrary colors for use in the tab bar
     tab_bar = {
-      background = "#1f2335", -- Darker background for contrast
+      background = "#011423",
 
       active_tab = {
-        bg_color = "#3d59a1", -- Deeper blue, more saturated
-        fg_color = "#c0caf5", -- Bright foreground text
+        bg_color = "#143652",
+        fg_color = "#CBE0F0",
       },
 
       inactive_tab = {
-        bg_color = "#1f2335", -- Match tab bar background
-        fg_color = "#9aa5ce", -- Lighter gray-blue for visibility
+        bg_color = "#011423",
+        fg_color = "#627E97",
       },
 
       inactive_tab_hover = {
-        bg_color = "#364a82", -- Selection blue background
-        fg_color = "#c0caf5", -- Bright text on hover
+        bg_color = "#275378",
+        fg_color = "#CBE0F0",
       },
 
       new_tab = {
-        bg_color = "#1f2335",
-        fg_color = "#7aa2f7", -- Bright blue
+        bg_color = "#011423",
+        fg_color = "#547998",
       },
 
       new_tab_hover = {
-        bg_color = "#364a82",
-        fg_color = "#c0caf5",
+        bg_color = "#275378",
+        fg_color = "#CBE0F0",
       },
     },
   }

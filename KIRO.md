@@ -50,6 +50,23 @@ Roles are class-of-machine configs (e.g., `depot` for workstations, `msys` for W
 - Multiple roles supported (one per line)
 - System-wide alternative: `/etc/dotfiles-role`
 
+## Lazygit
+
+Config lives in `lazygit/config.yml`, deployed to `~/.config/lazygit/config.yml`.
+
+Settings:
+- Uses `delta --side-by-side` as pager for side-by-side diffs
+- Nerd Fonts v3 icons enabled
+
+Requires: `delta` — install via one of:
+- Homebrew: `brew install git-delta`
+- Standalone binary (linux x86_64):
+  ```bash
+  curl -Lo /tmp/delta.tar.gz \
+    https://github.com/dandavison/delta/releases/latest/download/delta-0.18.2-x86_64-unknown-linux-gnu.tar.gz
+  tar -xzf /tmp/delta.tar.gz -C /tmp && sudo cp /tmp/delta-*/delta /usr/local/bin/
+  ```
+
 ## Conventions
 
 - All sourced files use `[[ -f ... ]] && source` guards — missing files are silently skipped
