@@ -27,7 +27,7 @@ nvim/
 │       ├── lsp/
 │       │   ├── mason.lua             # Mason: LSP/tool installer (OS-aware, offline-guarded)
 │       │   └── lspconfig.lua         # LSP server configs + keybinds on LspAttach
-│       ├── codecompanion.lua         # AI assistant (Groq, OpenRouter, Claude Code)
+│      ├── codecompanion.lua         # AI assistant (Groq, OpenRouter, Claude Code)
 │       ├── blink-cmp.lua            # Completion engine (replaced nvim-cmp)
 │       ├── treesitter.lua            # Syntax highlighting + custom parsers (d2, jinja2)
 │       ├── telescope.lua             # Fuzzy finder + Trouble integration
