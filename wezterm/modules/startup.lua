@@ -206,10 +206,22 @@ end
 -- Main apply function that sets up the gui-startup event
 function M.apply(config)
   wezterm.on("gui-startup", function(cmd)
-    -- Skip workspace setup if wezterm was invoked with a sub-command (e.g. "wezterm ssh")
-    if cmd and cmd.domain and cmd.domain ~= "local" then
+    -- Skip workspace setup if "wezterm ssh" or "wezterm connect" was used.
+    -- In those cases, the spawned window already has a purpose.
+    local dominated = cmd and cmd.domain
+    if dominated and dominated ~= "DefaultDomain" then
+      wezterm.log_info("Skipping workspace setup: domain is " .. tostring(dominated))
       return
     end
+
+    -- Fallback detection: check if WEZTERM_SSH is set or if there are already
+    -- windows/tabs in the mux (wezterm ssh creates one before gui-startup)
+    local tabs = mux.all_windows()
+    if #tabs > 0 then
+      wezterm.log_info("Skipping workspace setup: mux already has " .. #tabs .. " window(s)")
+      return
+    end
+
     local env_info = detect_environment()
     M.setup_workspaces(env_info)
   end)
