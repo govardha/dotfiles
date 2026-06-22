@@ -205,7 +205,11 @@ end
 
 -- Main apply function that sets up the gui-startup event
 function M.apply(config)
-  wezterm.on("gui-startup", function()
+  wezterm.on("gui-startup", function(cmd)
+    -- Skip workspace setup if wezterm was invoked with a sub-command (e.g. "wezterm ssh")
+    if cmd and cmd.domain and cmd.domain ~= "local" then
+      return
+    end
     local env_info = detect_environment()
     M.setup_workspaces(env_info)
   end)
