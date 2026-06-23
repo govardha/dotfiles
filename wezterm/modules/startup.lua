@@ -7,12 +7,7 @@ local M = {}
 local function detect_environment()
   local WORK_DOMAIN_NAME = "MIAMIHOLDINGS" -- Move this here or make it configurable
   local dom = os.getenv("USERDOMAIN")
-  local env_info = {
-    is_work_windows = false,
-    is_home_windows = false,
-    is_home_osx = false,
-    is_home_linux = false,
-  }
+  local env_info = { is_work_windows = false, is_home_windows = false, is_home_osx = false, is_home_linux = false }
 
   if wezterm.target_triple == "x86_64-pc-windows-msvc" then
     if dom and string.upper(dom) == WORK_DOMAIN_NAME then
@@ -46,14 +41,14 @@ function M.setup_workspaces(env_info)
 
     -- VPN workspace setup (uses default_prog from platform_specific.lua)
     local _, first_pane, vpn_window = mux.spawn_window({
-      workspace = "vpns",
+      workspace = "vpns"
     })
     vpn_window:spawn_tab({})
     vpn_window:spawn_tab({})
 
     -- Depot workspace setup
     local _, first_pane, depot_window = mux.spawn_window({
-      workspace = "depot",
+      workspace = "depot"
     })
     depot_window:spawn_tab({})
 
@@ -67,7 +62,7 @@ function M.setup_workspaces(env_info)
 
     -- Prod workspace setup (uses default_prog from platform_specific.lua)
     local _, first_pane, prod_window = mux.spawn_window({
-      workspace = "prod",
+      workspace = "prod"
     })
     prod_window:spawn_tab({})
     prod_window:spawn_tab({})
@@ -80,45 +75,9 @@ function M.setup_workspaces(env_info)
   elseif is_home_osx then
     wezterm.log_info("Setting up workspaces for home macOS environment")
 
-    -- VPN workspace setup (no custom args for macOS)
-    local _, first_pane, vpn_window = mux.spawn_window({
-      workspace = "vpns",
-    })
-    local _, second_pane, _ = vpn_window:spawn_tab({
-      args = { "ssh", "ubuntu@vpn" },
-    })
-    local _, third_pane, _ = vpn_window:spawn_tab({
-      args = { "ssh", "ubuntu@vpn2" },
-    })
-    local _, fourth_pane, _ = vpn_window:spawn_tab({
-      args = { "ssh", "ubuntu@vpn3" },
-    })
-    local _, fifth_pane, _ = vpn_window:spawn_tab({
-      args = { "ssh", "ubuntu@vpn4" },
-    })
-
-    -- Depot workspace setup with SSH connections
-    local _, first_pane, depot_window = mux.spawn_window({
-      workspace = "depot",
-    })
-    local _, second_pane, _ = depot_window:spawn_tab({
-      args = { "ssh", "ubuntu@rinku-depot" },
-    })
-    local _, third_pane, _ = depot_window:spawn_tab({
-      args = { "ssh", "ubuntu@rinku-depot2" },
-    })
-    local _, third_pane, _ = depot_window:spawn_tab({
-      args = { "ssh", "what" },
-    })
-
-    -- Set active workspace
-    mux.set_active_workspace("depot")
-  elseif is_home_linux then
-    wezterm.log_info("Setting up workspaces for home Linux environment")
-
     -- VPN workspace setup
     local _, _, vpn_window = mux.spawn_window({
-      workspace = "vpns",
+      workspace = "vpns"
     })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn" } })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn2" } })
@@ -127,11 +86,39 @@ function M.setup_workspaces(env_info)
 
     -- Depot workspace setup
     local _, _, depot_window = mux.spawn_window({
-      workspace = "depot",
+      workspace = "depot"
     })
+    depot_window:spawn_tab({ args = { "ssh", "govardha@imac-depot" } })
+    depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } }) -- native wezterm ssh test
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
     depot_window:spawn_tab({ args = { "ssh", "what" } })
+    depot_window:spawn_tab({ args = { "ssh", "what6" } })
+
+    -- Set active workspace
+    mux.set_active_workspace("depot")
+  elseif is_home_linux then
+    wezterm.log_info("Setting up workspaces for home Linux environment")
+
+    -- VPN workspace setup
+    local _, _, vpn_window = mux.spawn_window({
+      workspace = "vpns"
+    })
+    vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn" } })
+    vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn2" } })
+    vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn3" } })
+    vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn4" } })
+
+    -- Depot workspace setup
+    local _, _, depot_window = mux.spawn_window({
+      workspace = "depot"
+    })
+    depot_window:spawn_tab({ args = { "ssh", "govardha@imac-depot" } })
+    depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } }) -- native wezterm ssh test
+    depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
+    depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
+    depot_window:spawn_tab({ args = { "ssh", "what" } })
+    depot_window:spawn_tab({ args = { "ssh", "what6" } })
 
     -- Set active workspace
     mux.set_active_workspace("depot")
@@ -143,7 +130,7 @@ end
 -- Optional: More granular functions
 function M.setup_vpn_workspace()
   local _, first_pane, vpn_window = mux.spawn_window({
-    workspace = "vpns",
+    workspace = "vpns"
   })
   local _, second_pane, _ = vpn_window:spawn_tab({})
   local _, third_pane, _ = vpn_window:spawn_tab({})
@@ -152,7 +139,7 @@ end
 
 function M.setup_depot_workspace()
   local _, first_pane, depot_window = mux.spawn_window({
-    workspace = "depot",
+    workspace = "depot"
   })
   local _, second_pane, _ = depot_window:spawn_tab({})
   return depot_window
@@ -160,7 +147,7 @@ end
 
 -- Main apply function that sets up the gui-startup event
 function M.apply(config)
-  wezterm.on("gui-startup", function(cmd)
+  wezterm.on("gui-startup", function (cmd)
     local env_info = detect_environment()
     M.setup_workspaces(env_info)
   end)
