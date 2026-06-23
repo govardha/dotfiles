@@ -60,18 +60,34 @@ function M.setup_workspaces(env_info)
   elseif is_work_windows then
     wezterm.log_info("Setting up workspaces for work Windows environment")
 
-    -- Prod workspace setup (uses default_prog from platform_specific.lua)
-    local _, first_pane, prod_window = mux.spawn_window({
+    -- Prod workspace
+    local _, _, prod_window = mux.spawn_window({
       workspace = "prod"
     })
-    prod_window:spawn_tab({})
-    prod_window:spawn_tab({})
+    prod_window:spawn_tab({ args = { "ssh", "aws-ws" } })
+    prod_window:spawn_tab({ args = { "ssh", "aws-ws2" } })
+    local ok, err = pcall(function()
+      prod_window:spawn_tab({ domain = { DomainName = "SSHMUX:aws-ws" } })
+    end)
+    if not ok then
+      wezterm.log_warn("Failed to spawn SSHMUX:aws-ws tab in prod: " .. tostring(err))
+    end
+
+    -- Dev workspace
+    local _, _, dev_window = mux.spawn_window({
+      workspace = "dev"
+    })
+    dev_window:spawn_tab({ args = { "ssh", "aws-ws" } })
+    dev_window:spawn_tab({ args = { "ssh", "aws-ws2" } })
+    local ok2, err2 = pcall(function()
+      dev_window:spawn_tab({ domain = { DomainName = "SSHMUX:aws-ws" } })
+    end)
+    if not ok2 then
+      wezterm.log_warn("Failed to spawn SSHMUX:aws-ws tab in dev: " .. tostring(err2))
+    end
 
     -- Set active workspace
-    mux.set_active_workspace("prod")
-
-    -- Position the prod window
-    prod_window:gui_window():set_position(200, 100)
+    mux.set_active_workspace("dev")
   elseif is_home_osx then
     wezterm.log_info("Setting up workspaces for home macOS environment")
 
@@ -89,7 +105,12 @@ function M.setup_workspaces(env_info)
       workspace = "depot"
     })
     depot_window:spawn_tab({ args = { "ssh", "govardha@imac-depot" } })
-    depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } }) -- native wezterm ssh test
+    local ok, err = pcall(function()
+      depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } })
+    end)
+    if not ok then
+      wezterm.log_warn("Failed to spawn SSHMUX:imac-depot tab: " .. tostring(err))
+    end
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
     depot_window:spawn_tab({ args = { "ssh", "what" } })
@@ -114,7 +135,12 @@ function M.setup_workspaces(env_info)
       workspace = "depot"
     })
     depot_window:spawn_tab({ args = { "ssh", "govardha@imac-depot" } })
-    depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } }) -- native wezterm ssh test
+    local ok, err = pcall(function()
+      depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } })
+    end)
+    if not ok then
+      wezterm.log_warn("Failed to spawn SSHMUX:imac-depot tab: " .. tostring(err))
+    end
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
     depot_window:spawn_tab({ args = { "ssh", "what" } })
