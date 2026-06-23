@@ -44,46 +44,18 @@ function M.setup_workspaces(env_info)
   if is_home_windows then
     wezterm.log_info("Setting up workspaces for home Windows environment")
 
-    -- VPN workspace setup with home Windows args
+    -- VPN workspace setup (uses default_prog from platform_specific.lua)
     local _, first_pane, vpn_window = mux.spawn_window({
       workspace = "vpns",
-      args = {
-        "cmd.exe ",
-        "/k",
-        "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
-      },
     })
-    local _, second_pane, _ = vpn_window:spawn_tab({
-      args = {
-        "cmd.exe ",
-        "/k",
-        "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
-      },
-    })
-    local _, third_pane, _ = vpn_window:spawn_tab({
-      args = {
-        "cmd.exe ",
-        "/k",
-        "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
-      },
-    })
+    vpn_window:spawn_tab({})
+    vpn_window:spawn_tab({})
 
-    -- Depot workspace setup with home Windows args
+    -- Depot workspace setup
     local _, first_pane, depot_window = mux.spawn_window({
       workspace = "depot",
-      args = {
-        "cmd.exe ",
-        "/k",
-        "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
-      },
     })
-    local _, second_pane, _ = depot_window:spawn_tab({
-      args = {
-        "cmd.exe ",
-        "/k",
-        "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
-      },
-    })
+    depot_window:spawn_tab({})
 
     -- Set active workspace
     mux.set_active_workspace("vpns")
@@ -93,29 +65,12 @@ function M.setup_workspaces(env_info)
   elseif is_work_windows then
     wezterm.log_info("Setting up workspaces for work Windows environment")
 
-    -- Prod workspace setup with work Windows args
+    -- Prod workspace setup (uses default_prog from platform_specific.lua)
     local _, first_pane, prod_window = mux.spawn_window({
       workspace = "prod",
-      args = {
-        "cmd.exe ",
-        "/k",
-        "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
-      },
     })
-    local _, second_pane, _ = prod_window:spawn_tab({
-      args = {
-        "cmd.exe ",
-        "/k",
-        "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
-      },
-    })
-    local _, third_pane, _ = prod_window:spawn_tab({
-      args = {
-        "cmd.exe ",
-        "/k",
-        "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash",
-      },
-    })
+    prod_window:spawn_tab({})
+    prod_window:spawn_tab({})
 
     -- Set active workspace
     mux.set_active_workspace("prod")
@@ -206,22 +161,6 @@ end
 -- Main apply function that sets up the gui-startup event
 function M.apply(config)
   wezterm.on("gui-startup", function(cmd)
-    -- Skip workspace setup if "wezterm ssh" or "wezterm connect" was used.
-    -- In those cases, the spawned window already has a purpose.
-    local dominated = cmd and cmd.domain
-    if dominated and dominated ~= "DefaultDomain" then
-      wezterm.log_info("Skipping workspace setup: domain is " .. tostring(dominated))
-      return
-    end
-
-    -- Fallback detection: check if WEZTERM_SSH is set or if there are already
-    -- windows/tabs in the mux (wezterm ssh creates one before gui-startup)
-    local tabs = mux.all_windows()
-    if #tabs > 0 then
-      wezterm.log_info("Skipping workspace setup: mux already has " .. #tabs .. " window(s)")
-      return
-    end
-
     local env_info = detect_environment()
     M.setup_workspaces(env_info)
   end)
