@@ -79,7 +79,8 @@ safe_copy() {
 }
 
 # ── Create base directories ───────────────────────────────────────────────────
-mkdir -p "${HOOKS_DIR}" "${AGENTS_DIR}" "${MEMORY_DIR}"
+SCRIPTS_DIR="${CLAUDE_DIR}/scripts"
+mkdir -p "${HOOKS_DIR}" "${AGENTS_DIR}" "${MEMORY_DIR}" "${SCRIPTS_DIR}"
 
 # ── Set up global git hooks (Claude commits get footer, humans don't) ────────
 EXISTING_HOOKS_PATH=$(git config --global core.hooksPath 2>/dev/null || echo "")
@@ -115,6 +116,9 @@ for hook in audit.sh prompt-guard.sh session-start.sh branch-guard.sh git-guard.
   [[ -f "${DOTFILES_DIR}/hooks/common/${hook}" ]] || continue
   safe_copy "${DOTFILES_DIR}/hooks/common/${hook}" "${HOOKS_DIR}/${hook}"
 done
+
+# ── Scripts (always installed) ────────────────────────────────────────────────
+safe_copy "${DOTFILES_DIR}/scripts/statusline.py" "${SCRIPTS_DIR}/statusline.py"
 
 # ── Global hooks (always installed) ──────────────────────────────────────────
 mkdir -p "${HOOKS_DIR}/global"
