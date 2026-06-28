@@ -3,9 +3,9 @@ local mux = wezterm.mux
 
 local M = {}
 
-local WORK_DOMAIN_NAME = "MIAMIHOLDINGS"
-
+-- Environment detection
 local function detect_environment()
+  local WORK_DOMAIN_NAME = "MIAMIHOLDINGS" -- Move this here or make it configurable
   local dom = os.getenv("USERDOMAIN")
   local env_info = { is_work_windows = false, is_home_windows = false, is_home_osx = false, is_home_linux = false }
 
@@ -17,7 +17,7 @@ local function detect_environment()
       env_info.is_home_windows = true
       wezterm.log_info("Detected: Home Windows environment")
     end
-  elseif wezterm.target_triple:match("apple") then
+  elseif wezterm.target_triple == "aarch64-apple-darwin" or wezterm.target_triple == "x86_64-apple-darwin" then
     env_info.is_home_osx = true
     wezterm.log_info("Detected: Home macOS environment")
   elseif wezterm.target_triple:match("linux") then
@@ -29,77 +29,151 @@ local function detect_environment()
 end
 
 function M.setup_workspaces(env_info)
+  -- You can use env_info to customize behavior based on environment
   local is_work_windows = env_info.is_work_windows
   local is_home_windows = env_info.is_home_windows
   local is_home_osx = env_info.is_home_osx
   local is_home_linux = env_info.is_home_linux
 
-  local bash_args = {
-    "cmd.exe", "/k", "C:\\DevSoftware\\msys64\\msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash"
-  }
-
-  if is_work_windows then
-    wezterm.log_info("Setting up workspaces for work Windows environment")
-
-    local _, _, prod_window = mux.spawn_window({ workspace = "prod", args = bash_args })
-    prod_window:spawn_tab({ args = bash_args })
-    prod_window:spawn_tab({ args = bash_args })
-    mux.set_active_workspace("prod")
-    prod_window:gui_window():set_position(200, 100)
-  elseif is_home_windows then
+  -- Set up workspaces based on environment
+  if is_home_windows then
     wezterm.log_info("Setting up workspaces for home Windows environment")
 
-    local _, _, vpn_window = mux.spawn_window({ workspace = "vpns", args = bash_args })
-    vpn_window:spawn_tab({ args = bash_args })
-    vpn_window:spawn_tab({ args = bash_args })
+    -- VPN workspace setup (uses default_prog from platform_specific.lua)
+    local _, first_pane, vpn_window = mux.spawn_window({
+      workspace = "vpns"
+    })
+    vpn_window:spawn_tab({})
+    vpn_window:spawn_tab({})
 
-    local _, _, depot_window = mux.spawn_window({ workspace = "depot", args = bash_args })
-    depot_window:spawn_tab({ args = bash_args })
+    -- Depot workspace setup
+    local _, first_pane, depot_window = mux.spawn_window({
+      workspace = "depot"
+    })
+    depot_window:spawn_tab({})
 
+    -- Set active workspace
     mux.set_active_workspace("vpns")
+
+    -- Position the VPN window (since it's the active workspace)
     vpn_window:gui_window():set_position(200, 100)
+  elseif is_work_windows then
+    wezterm.log_info("Setting up workspaces for work Windows environment")
+
+    -- Prod workspace
+    local _, _, prod_window = mux.spawn_window({
+      workspace = "prod"
+    })
+    prod_window:spawn_tab({ args = { "ssh", "aws-ws" } })
+    prod_window:spawn_tab({ args = { "ssh", "aws-ws2" } })
+    local ok, err = pcall(function()
+      prod_window:spawn_tab({ domain = { DomainName = "SSHMUX:aws-ws" } })
+    end)
+    if not ok then
+      wezterm.log_warn("Failed to spawn SSHMUX:aws-ws tab in prod: " .. tostring(err))
+    end
+
+    -- Dev workspace
+    local _, _, dev_window = mux.spawn_window({
+      workspace = "dev"
+    })
+    dev_window:spawn_tab({ args = { "ssh", "aws-ws" } })
+    dev_window:spawn_tab({ args = { "ssh", "aws-ws2" } })
+    local ok2, err2 = pcall(function()
+      dev_window:spawn_tab({ domain = { DomainName = "SSHMUX:aws-ws" } })
+    end)
+    if not ok2 then
+      wezterm.log_warn("Failed to spawn SSHMUX:aws-ws tab in dev: " .. tostring(err2))
+    end
+
+    -- Set active workspace
+    mux.set_active_workspace("dev")
   elseif is_home_osx then
     wezterm.log_info("Setting up workspaces for home macOS environment")
 
-    local _, _, vpn_window = mux.spawn_window({ workspace = "vpns" })
+    -- VPN workspace setup
+    local _, _, vpn_window = mux.spawn_window({
+      workspace = "vpns"
+    })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn" } })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn2" } })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn3" } })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn4" } })
 
-    local _, _, depot_window = mux.spawn_window({ workspace = "depot" })
+    -- Depot workspace setup
+    local _, _, depot_window = mux.spawn_window({
+      workspace = "depot"
+    })
+    depot_window:spawn_tab({ args = { "ssh", "govardha@imac-depot" } })
+    local ok, err = pcall(function()
+      depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } })
+    end)
+    if not ok then
+      wezterm.log_warn("Failed to spawn SSHMUX:imac-depot tab: " .. tostring(err))
+    end
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
+    depot_window:spawn_tab({ args = { "ssh", "what" } })
+    depot_window:spawn_tab({ args = { "ssh", "what6" } })
 
+    -- Set active workspace
     mux.set_active_workspace("depot")
   elseif is_home_linux then
     wezterm.log_info("Setting up workspaces for home Linux environment")
 
-    local _, _, vpn_window = mux.spawn_window({ workspace = "vpns" })
+    -- VPN workspace setup
+    local _, _, vpn_window = mux.spawn_window({
+      workspace = "vpns"
+    })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn" } })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn2" } })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn3" } })
     vpn_window:spawn_tab({ args = { "ssh", "ubuntu@vpn4" } })
 
-    local _, _, depot_window = mux.spawn_window({ workspace = "depot" })
+    -- Depot workspace setup
+    local _, _, depot_window = mux.spawn_window({
+      workspace = "depot"
+    })
+    depot_window:spawn_tab({ args = { "ssh", "govardha@imac-depot" } })
+    local ok, err = pcall(function()
+      depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } })
+    end)
+    if not ok then
+      wezterm.log_warn("Failed to spawn SSHMUX:imac-depot tab: " .. tostring(err))
+    end
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
+    depot_window:spawn_tab({ args = { "ssh", "what" } })
+    depot_window:spawn_tab({ args = { "ssh", "what6" } })
 
+    -- Set active workspace
     mux.set_active_workspace("depot")
   else
     wezterm.log_info("Unknown environment - skipping workspace setup")
   end
 end
 
+-- Optional: More granular functions
+function M.setup_vpn_workspace()
+  local _, first_pane, vpn_window = mux.spawn_window({
+    workspace = "vpns"
+  })
+  local _, second_pane, _ = vpn_window:spawn_tab({})
+  local _, third_pane, _ = vpn_window:spawn_tab({})
+  return vpn_window
+end
+
+function M.setup_depot_workspace()
+  local _, first_pane, depot_window = mux.spawn_window({
+    workspace = "depot"
+  })
+  local _, second_pane, _ = depot_window:spawn_tab({})
+  return depot_window
+end
+
+-- Main apply function that sets up the gui-startup event
 function M.apply(config)
   wezterm.on("gui-startup", function (cmd)
-    -- cmd is non-nil when wezterm was invoked with a subcommand (ssh, connect, etc.)
-    -- In that case, skip workspace setup entirely.
-    if cmd then
-      wezterm.log_info("gui-startup: invoked with subcommand, skipping workspace setup")
-      return
-    end
-
     local env_info = detect_environment()
     M.setup_workspaces(env_info)
   end)
