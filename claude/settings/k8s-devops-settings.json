@@ -58,7 +58,21 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/scripts/statusline.py"
+          }
+        ]
+      }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "python3 ~/.claude/scripts/statusline.py"
   },
   "autoCompactThreshold": 0.5
 }
