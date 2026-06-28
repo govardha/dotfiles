@@ -27,7 +27,7 @@ return {
       "perlnavigator",
       "jsonls",
       "yamlls",
-      "emmylua_ls", -- Use EmmyLua on RHEL8 due to GLIBC issues
+      "lua_ls",
       "docker_compose_language_service",
     }
 
@@ -45,9 +45,7 @@ return {
       os_specific_lsp = {}
     else
       -- Default fallback for other systems
-      os_specific_lsp = {
-        "emmylua_ls",
-      }
+      os_specific_lsp = {}
     end
 
     -- Combine common and OS-specific servers
@@ -76,9 +74,7 @@ return {
     elseif is_mac then
       os_specific_tools = {}
     else
-      os_specific_tools = {
-        "emmylua-codeformat",
-      }
+      os_specific_tools = {}
     end
 
     -- Combine common and OS-specific tools

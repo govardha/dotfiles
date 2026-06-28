@@ -83,22 +83,17 @@ return {
       capabilities = capabilities,
     })
 
-    -- Lua LSP configuration (EmmyLua for all platforms now)
-    vim.lsp.config("emmylua_ls", {
+    -- Lua LSP configuration (lua-language-server)
+    vim.lsp.config("lua_ls", {
       settings = {
-        EmmyLua = {
-          completion = {
-            callSnippet = "Replace",
-          },
-          diagnostics = {
-            globals = { "vim" },
-          },
-          hint = {
-            enable = true,
-          },
+        Lua = {
+          runtime = { version = "LuaJIT" },
+          diagnostics = { globals = { "vim" } },
           workspace = {
+            library = vim.api.nvim_get_runtime_file("", true),
             checkThirdParty = false,
           },
+          hint = { enable = true },
         },
       },
     })
