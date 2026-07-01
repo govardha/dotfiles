@@ -29,11 +29,18 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-local plugin_imports = { { import = "gov.plugins" } }
+-- [3] Build list of plugin spec directories for lazy.nvim to scan
+--     Each { import = "..." } tells lazy.nvim to require() every .lua file in that module path
+local plugin_imports = { { import = "gov.plugins" } } -- lua/gov/plugins/*.lua
 if not vim.g.is_msys2 then
-	table.insert(plugin_imports, { import = "gov.plugins.lsp" })
+	-- [3a] LSP plugins only loaded on non-MSYS2 systems
+	table.insert(plugin_imports, { import = "gov.plugins.lsp" }) -- lua/gov/plugins/lsp/*.lua
 end
 
+-- [4] Initialize lazy.nvim — this is where all plugins are actually loaded
+--     lazy.nvim reads each .lua file in the imported directories,
+--     evaluates the returned spec table, and installs/loads accordingly.
+--     Plugin load order is managed by lazy.nvim (dependencies, events, keys, etc.)
 require("lazy").setup(plugin_imports, {
 	checker = {
 		enabled = is_online, -- Only check for updates when online
