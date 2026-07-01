@@ -1,3 +1,5 @@
+-- [1] Load core modules: options.lua → keymaps.lua → offline-guard.lua
+--     from lua/gov/core/init.lua
 require("gov.core")
 
 -- Detect MSYS2 environment (UCRT64, MINGW64, CLANG64, etc.)
@@ -31,6 +33,11 @@ if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
 end
 
 if not vim.g.vscode then
-  -- Full TTY neovim: load lazy.nvim and all plugins
+  -- [2] Full TTY neovim: bootstrap lazy.nvim and load ALL plugins
+  --     Entry: lua/gov/lazy.lua
+  --     Plugin specs loaded from:
+  --       • lua/gov/plugins/init.lua       (always-loaded: plenary, vim-tmux-navigator)
+  --       • lua/gov/plugins/*.lua          (one file per plugin)
+  --       • lua/gov/plugins/lsp/*.lua      (LSP stack — skipped on MSYS2)
   require("gov.lazy")
 end
