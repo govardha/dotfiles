@@ -131,6 +131,29 @@ you for every file write. Authentication is handled by `kiro-cli` itself
 handler in the plugin just always returns success and lets `kiro-cli`
 enforce its own login.
 
+**Model/mode switching is patched in, not native.** Kiro's ACP server
+doesn't use the ACP-spec `configOptions` field for model/mode selection —
+its `session/new` response instead carries its own non-standard
+`models.availableModels[]` / `modes.availableModes[]` blocks, which
+CodeCompanion reads nowhere, and `session/set_model` / `session/set_mode`
+are undocumented Kiro-specific RPCs. Because of this, the plugin's generic
+`ga` (change adapter) picker is always empty for kiro chats. `codecompanion.lua`
+works around it by monkey-patching `codecompanion.acp`'s
+`send_rpc_request` (done lazily, once, from inside the `CodeCompanionChatCreated`
+autocmd in §5/§6 so it never forces the plugin to load early) to capture
+that catalog off of every `session/new` response, storing it on the ACP
+connection as `_kiro_catalog`. Two new keymaps drive it directly through the
+raw RPCs — see §7 (`<leader>km` / `<leader>kM`).
+
+This patch also fixes a second, quieter bug: the plugin's own
+`chat:update_metadata()` resolves the model via `get_models()`, which is
+always `nil` for Kiro, so every Kiro chat's metadata (and therefore the
+lualine indicator — §11) showed a generic `"default"` model instead of the
+real one, both right after connecting and after a manual model change. The
+patch corrects `_G.codecompanion_chat_metadata[bufnr].adapter.model` by hand
+in both cases and forces `redrawstatus` so the statusline updates
+immediately instead of on the next unrelated redraw.
+
 ### `claude_code` (ACP)
 
 There is **no override for this one at all** — it isn't mentioned anywhere in
@@ -376,7 +399,7 @@ a built-in `gty` keymap (`yolo_mode`) for exactly that.
 
 All under `<leader>a*` (mnemonic: "AI"), defined via lazy.nvim's `keys` spec
 — meaning `codecompanion.nvim` doesn't load at Neovim startup at all, it
-loads the first time you press one of these (see §10).
+loads the first time you press one of these (see §12).
 
 | Keymap | Mode | What actually happens |
 |---|---|---|
@@ -394,6 +417,8 @@ loads the first time you press one of these (see §10).
 | `<leader>af` | v | Runs `fix` — also a **chat** interaction. |
 | `<leader>aT` | v | Runs `tests` — this one *is* an **inline** interaction. |
 | `<leader>am` | n | Runs `commit` — a **chat** interaction, pulls in your git diff. |
+| `<leader>km` | n | **Kiro-only.** Picks a Kiro model via the raw `session/set_model` RPC (§3) — errors with a notification if the current buffer isn't a connected `kiro` chat, or if no model catalog has been captured yet. |
+| `<leader>kM` | n | **Kiro-only.** Same, but for mode (`session/set_mode`) — e.g. switching between Kiro's agent/ask-style modes, whatever `availableModes` the session advertises. |
 
 Note that the visual-mode `ga` here is a **global** keymap you've defined
 (distinct from the plugin's own buffer-local `ga` keymap inside an *already
@@ -491,7 +516,79 @@ adapters but checked anyway) are present.
 
 ---
 
-## 11. Why the plugin loads when it does
+## 11. The lualine indicator — model/context at a glance
+
+`lua/gov/plugins/lualine.lua` renders a `lualine_x` component that shows
+which adapter/model a CodeCompanion chat buffer is using, without ever
+force-loading the plugin itself.
+
+**Data source.** It reads `_G.codecompanion_chat_metadata[bufnr]`, a global
+table the plugin keeps up to date per chat (`:h
+codecompanion-usage-user-interface`, under "Metadata") — *not* the plugin's
+static config, which is what an earlier version of this component read, and
+which had gone stale (it pointed at a `strategies.chat.adapter` config path
+that stopped existing when this file was refactored for v19.18 — see §5/§6).
+For Kiro chats specifically, this metadata is only correct because of the
+`update_metadata()` patch described in §3 — without it, every Kiro chat would
+show model `"default"` regardless of which model is actually selected.
+
+**Lazy-load safety.** The component's `cond` is a plain `vim.bo.filetype ==
+"codecompanion"` check, deliberately *not* `pcall(require, "codecompanion")`.
+Requiring the plugin just to test "is it loaded" would force lazy.nvim to
+load it on the very first statusline redraw after Neovim starts, defeating
+the whole point of the `keys`-only lazy-loading described in §12. A filetype
+check costs nothing and never touches the plugin.
+
+**What it shows:**
+
+- **Icon + short adapter name** — `Kiro`, `Claude` (abbreviated from "Claude
+  Code" to save width), or `OpenRouter`, each with its own nerd-font icon and
+  color (`adapter_icons` / `adapter_colors` in the file).
+- **Model id**, shortened to just the part after the last `/` (so
+  `google/gemini-2.5-flash` shows as `gemini-2.5-flash`).
+- **Context-window usage, as a percentage, for HTTP adapters only** —
+  `openrouter` chats show e.g. `󰅩 OpenRouter · 42%` instead of the model
+  name once a ratio is available, because the percentage is the thing worth
+  glancing at mid-conversation, not a model that rarely changes. ACP chats
+  (`kiro`, `claude_code`) never show a percentage — they have no
+  `schema.model.choices[...].meta` for CodeCompanion to resolve a context
+  window from, so `context_usage_ratio()` returns `nil` for them and the
+  model name is shown instead. The ratio itself is computed by calling the
+  plugin's own `adapters.shared.context_window()` resolver, the same
+  function `context_management`'s editing/compaction triggers use
+  internally — so the percentage always matches what the plugin itself is
+  about to act on (auto-editing old tool output, then auto-compacting).
+- **Color thresholds pulled live from that same config** —
+  `interactions.chat.opts.context_management.editing.trigger` (default
+  `0.65`) turns the segment yellow, `.compaction.trigger` (default `0.85`)
+  turns it red — read at call time, not hardcoded, so if you ever retune
+  those triggers in `codecompanion.lua` the indicator's colors move with
+  them automatically.
+- **Unicode-aware truncation** — hard-capped at 24 display columns via
+  `vim.fn.strchars`/`strcharpart` (codepoint-aware, not byte-based), so a
+  long model id can't blow out the statusline, and the multi-byte nerd-font
+  icon prefix can't get chopped mid-character the way a byte-based `:sub()`
+  truncation could.
+
+**Redraw timing.** The ACP model isn't known until the subprocess connects
+(a few seconds after the chat buffer opens — see §1), and HTTP token
+counts/model change per request, so the component doesn't wait for
+lualine's normal redraw cadence (cursor move, mode change, etc.). An autocmd
+in `lualine.lua` listens for the plugin's own `CodeCompanionChatAdapter`,
+`CodeCompanionChatModel`, `CodeCompanionChatOpened`, and
+`CodeCompanionRequestFinished` `User` events and calls `redrawstatus`
+immediately when any of them fire. The Kiro model/mode keymaps in §7
+(`<leader>km`/`<leader>kM`) bypass `chat:change_model()` entirely (they call
+the raw RPC directly — see §3), so no `ChatModel` event fires for them; that
+code path calls `redrawstatus` itself instead.
+
+**Also changed alongside this:** `lualine_b` dropped the `branch` segment
+(kept `diff` and `diagnostics`) — unrelated to CodeCompanion, just decluttering
+that was bundled into the same commit.
+
+---
+
+## 12. Why the plugin loads when it does
 
 ```lua
 return {
@@ -519,7 +616,7 @@ of the CLI tools doesn't behave well there.
 
 ---
 
-## 12. Environment variables
+## 13. Environment variables
 
 | Variable | Required for | Notes |
 |---|---|---|
@@ -531,7 +628,7 @@ via `kiro-cli` itself, outside of Neovim entirely.
 
 ---
 
-## 13. Quick mental checklist for "what will pressing this key actually do"
+## 14. Quick mental checklist for "what will pressing this key actually do"
 
 1. **Is it a `chat` or `cli` keymap?** `cli` = raw terminal, tool's own UI,
    nothing CodeCompanion-specific happens to the conversation. `chat` =
@@ -548,6 +645,13 @@ via `kiro-cli` itself, outside of Neovim entirely.
    carry their own adapter — they inherit whichever default applies to their
    declared `interaction:` type (`chat` → kiro, `inline` → openrouter). See
    §8 if a shortcut feels slower or faster than you expected.
+5. **In a Kiro chat and want a different model/mode?** `ga` (the plugin's
+   built-in change-adapter keymap) won't show anything — Kiro doesn't expose
+   its catalog through the ACP-spec field CodeCompanion reads. Use
+   `<leader>km` (model) / `<leader>kM` (mode) instead; see §3 and §7.
+6. **Wondering what model/adapter a chat is on right now?** Check the
+   lualine indicator (§11) rather than opening chat settings — it's live and
+   updates within a redraw of any adapter/model change or request finishing.
 
 ---
 
