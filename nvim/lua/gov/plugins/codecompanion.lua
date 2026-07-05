@@ -187,6 +187,12 @@ return {
     "stevearc/dressing.nvim",
     "nvim-telescope/telescope.nvim"
   },
+  cmd = {
+    "CodeCompanion",
+    "CodeCompanionChat",
+    "CodeCompanionActions",
+    "CodeCompanionCLI"
+  },
   opts = {
     interactions = {
       chat = {
