@@ -1,17 +1,18 @@
 -- nvim/lua/gov/plugins/codecompanion.lua
 --
 -- CodeCompanion plugin config: AI-powered coding assistant for Neovim.
--- ACP agents: kiro (home default), claude_code (work)
--- HTTP adapters: openrouter (occasional use)
+-- ACP agents (chat): kiro (home default), claude_code (work) — these run
+-- their own tool loop over ACP and bypass CodeCompanion's built-in tools.
+-- HTTP adapter (chat/inline): openrouter (occasional use) — the only path
+-- that exercises CodeCompanion's own tools (file edit, run_command, etc.)
 --
 -- Env vars required:
 --   OPENROUTER_API_KEY – for OpenRouter adapter
---   CLAUDE_CODE_OAUTH_TOKEN – for Claude Code (or use API key auth)
+--   CLAUDE_CODE_OAUTH_TOKEN – optional; falls back to `claude` CLI's own login
 --
 return {
   "olimorris/codecompanion.nvim",
   cond = not vim.g.is_msys2,
-  lazy = false,
   dependencies = {
     "nvim-lua/plenary.nvim",
     "nvim-treesitter/nvim-treesitter",
@@ -20,7 +21,15 @@ return {
   },
   opts = {
     interactions = {
-      chat = { adapter = "kiro" },
+      chat = {
+        adapter = "kiro"
+        -- NOTE: no static `tools.opts.default_tools` here. That option applies
+        -- to every chat regardless of adapter, so it would tag ACP chats
+        -- (kiro/claude_code) with a phantom "files" tool group even though
+        -- ACP adapters never call CodeCompanion's own tools. The `files`
+        -- group is instead added only for HTTP-adapter chats via the
+        -- CodeCompanionChatCreated autocmd below.
+      },
       inline = { adapter = "openrouter" },
       cli = {
         agent = "kiro",
@@ -40,42 +49,24 @@ return {
     },
     adapters = {
       acp = {
-        kiro = function ()
-          return require("codecompanion.adapters").extend("kiro", {
+        extend = {
+          kiro = {
             commands = {
-              default = {
-                "kiro-cli",
-                "acp",
-                "--trust-all-tools"
-              }
+              default = { "kiro-cli", "acp", "--trust-all-tools" }
             }
-          })
-        end,
-        claude_code = function ()
-          return require("codecompanion.adapters").extend("claude_code", {})
-        end
+          }
+          -- claude_code needs no override: built-in default command
+          -- `claude-agent-acp` is on PATH and auths via `claude`'s own login.
+        }
       },
       http = {
-        openrouter = function ()
-          return require("codecompanion.adapters").extend("openai_compatible", {
-            name = "openrouter",
-            formatted_name = "OpenRouter",
-            env = {
-              url = "https://openrouter.ai/api",
-              api_key = "OPENROUTER_API_KEY",
-              chat_url = "/v1/chat/completions"
-            },
-            headers = {
-              ["HTTP-Referer"] = "https://github.com/olimorris/codecompanion.nvim",
-              ["X-Title"] = "CodeCompanion"
-            },
+        extend = {
+          openrouter = {
             schema = {
-              model = {
-                default = "google/gemini-2.5-flash"
-              }
+              model = { default = "google/gemini-2.5-flash" }
             }
-          })
-        end
+          }
+        }
       }
     },
     rules = {
@@ -113,12 +104,18 @@ return {
       opts = {
         chat = {
           enabled = true,
-          autoload = { "default", "kiro", "claude" }
+          -- Only "default" is adapter-agnostic and safe to autoload for every
+          -- chat. `enabled` on the kiro/claude groups below is ONLY consulted
+          -- by the interactive `/rules` picker, NOT by autoload — autoload
+          -- blindly loads every name in this list regardless of `enabled`.
+          -- So kiro/claude rules are instead loaded conditionally by adapter
+          -- via the CodeCompanionChatCreated autocmd below.
+          autoload = { "default" }
         }
       }
     },
     opts = {
-      log_level = "DEBUG"
+      log_level = "ERROR"
     }
   },
   keys = {
@@ -148,11 +145,48 @@ return {
     -- Prompt library
     { "<leader>ae", "<cmd>CodeCompanion /explain<CR>", mode = "v", desc = "AI: Explain code" },
     { "<leader>af", "<cmd>CodeCompanion /fix<CR>", mode = "v", desc = "AI: Fix code" },
-    { "<leader>au", "<cmd>CodeCompanion /usage<CR>", mode = "v", desc = "AI: Usage" },
     { "<leader>aT", "<cmd>CodeCompanion /tests<CR>", mode = "v", desc = "AI: Generate tests" },
     { "<leader>am", "<cmd>CodeCompanion /commit<CR>", mode = "n", desc = "AI: Commit message" }
   },
   init = function ()
     vim.cmd([[cab cc CodeCompanion]])
+
+    -- Adapter-conditional rules/tools: the plugin's `enabled` field on a
+    -- rules group and its `tools.opts.default_tools` list both apply
+    -- unconditionally to every chat, regardless of adapter. This autocmd
+    -- fires once per chat, after it's fully created (adapter resolved), and
+    -- applies the right rules/tools for that specific adapter:
+    --   - kiro chats      -> load ~/.kiro/KIRO.md / KIRO.md
+    --   - claude_code chats -> load ~/.claude/CLAUDE.md / CLAUDE.md / CLAUDE.local.md
+    --   - http chats (openrouter) -> add the "files" tool group
+    local rules_group_by_adapter = { kiro = "kiro", claude_code = "claude" }
+
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "CodeCompanionChatCreated",
+      callback = function(args)
+        local chat = require("codecompanion.interactions.chat").buf_get_chat(args.data.bufnr)
+        if not chat or not chat.adapter then
+          return
+        end
+
+        if chat.adapter.type == "http" then
+          chat.tool_registry:add("files")
+          return
+        end
+
+        local group_name = rules_group_by_adapter[chat.adapter.name]
+        local group = group_name and require("codecompanion.config").rules[group_name]
+        if not group then
+          return
+        end
+
+        require("codecompanion.interactions.shared.rules").add_to_chat_from_config(chat, {
+          name = group_name,
+          opts = group.opts,
+          parser = group.parser,
+          files = group.files
+        })
+      end
+    })
   end
 }
