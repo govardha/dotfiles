@@ -9,6 +9,7 @@ vim.g.is_msys2 = vim.fn.has("win32") == 1 and os.getenv("MSYSTEM") ~= nil
 vim.filetype.add({
   extension = {
     d2 = "d2",
+    groovy = "groovy",
     locator = "xml",
     j2 = "jinja",
     jinja = "jinja",
