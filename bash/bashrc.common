@@ -18,6 +18,17 @@ export PATH="${PATH}:${HOME}/.local/bin"
 alias gfgp='git fetch && git pull'
 alias awslogin='aws sso login --sso-session rinku --no-browser --use-device-code'
 
+rmux() {
+    local target="$1" session="$2"
+    [[ -z "$target" ]] && { echo "usage: rmux [user@]host [session-name]" >&2; return 1; }
+
+    local host="${target##*@}"          # strip user@ if present
+    host="${host//[.:]/-}"              # sanitize for tmux session name (dots/colons break pane addressing)
+    session="${session:-$host}"
+
+    ssh -t "$target" "tmux new-session -A -s '$session'"
+}
+
 # Bash completions
 if [[ -r "/home/linuxbrew/.linuxbrew/etc/profile.d/bash_completion.sh" ]]; then
   source "/home/linuxbrew/.linuxbrew/etc/profile.d/bash_completion.sh"
