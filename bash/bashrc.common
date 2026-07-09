@@ -13,6 +13,7 @@ alias vim='nvim'
 
 # PATH
 export PATH="${PATH}:${HOME}/.local/bin"
+cxport PATH=$HOME/filebot-portable:/home/gundan/.openjdk/bin/java:$PATH
 
 # Aliases
 alias gfgp='git fetch && git pull'
