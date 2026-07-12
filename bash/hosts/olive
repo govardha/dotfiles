@@ -1,7 +1,7 @@
 # hosts/olive — overrides for olive
 # Need this for rtcontrol
-source 3.13/bin/activate
+source $HOME/3.13/bin/activate
 
 ## java and filebot works
-export PATH="${PATH}:${HOME}/filebot-portable/jar"
+export PATH="${PATH}:${HOME}/filebot-portable"
 export PATH="${PATH}:${HOME}/.openjdk/bin"
