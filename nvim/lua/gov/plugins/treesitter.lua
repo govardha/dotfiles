@@ -35,6 +35,14 @@ return {
       },
       filetype = "d2",
     }
+    parsers.groovy = {
+      install_info = {
+        url = "https://github.com/murtaza64/tree-sitter-groovy",
+        files = { "src/parser.c" },
+        branch = "main",
+      },
+      filetype = "groovy",
+    }
     parsers.jinja2 = {
       install_info = {
         url = "https://github.com/cathaysia/tree-sitter-jinja",
@@ -60,7 +68,7 @@ return {
         return
       end
       ts.install({
-        "bash", "c", "css", "dockerfile", "gitignore", "graphql",
+        "bash", "c", "css", "dockerfile", "gitignore", "graphql", "groovy",
         "html", "javascript", "json", "lua", "markdown", "markdown_inline",
         "perl", "python", "query", "tsx", "typescript", "vim", "vimdoc",
         "yaml", "xml",

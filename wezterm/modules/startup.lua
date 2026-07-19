@@ -65,26 +65,31 @@ function M.setup_workspaces(env_info)
       workspace = "prod"
     })
     prod_window:spawn_tab({ args = { "ssh", "aws-ws" } })
-    prod_window:spawn_tab({ args = { "ssh", "aws-ws2" } })
-    local ok, err = pcall(function()
-      prod_window:spawn_tab({ domain = { DomainName = "SSHMUX:aws-ws" } })
-    end)
-    if not ok then
-      wezterm.log_warn("Failed to spawn SSHMUX:aws-ws tab in prod: " .. tostring(err))
-    end
+    -- Disabled: not on one consistent wezterm nightly build across every
+    -- box yet, so the extra aws-ws2 tab and wezterm-native SSHMUX
+    -- multiplexing are more trouble than they're worth right now. One
+    -- plain ssh session into aws-ws is enough.
+    -- prod_window:spawn_tab({ args = { "ssh", "aws-ws2" } })
+    -- local ok, err = pcall(function()
+    --   prod_window:spawn_tab({ domain = { DomainName = "SSHMUX:aws-ws" } })
+    -- end)
+    -- if not ok then
+    --   wezterm.log_warn("Failed to spawn SSHMUX:aws-ws tab in prod: " .. tostring(err))
+    -- end
 
     -- Dev workspace
     local _, _, dev_window = mux.spawn_window({
       workspace = "dev"
     })
     dev_window:spawn_tab({ args = { "ssh", "aws-ws" } })
-    dev_window:spawn_tab({ args = { "ssh", "aws-ws2" } })
-    local ok2, err2 = pcall(function()
-      dev_window:spawn_tab({ domain = { DomainName = "SSHMUX:aws-ws" } })
-    end)
-    if not ok2 then
-      wezterm.log_warn("Failed to spawn SSHMUX:aws-ws tab in dev: " .. tostring(err2))
-    end
+    -- Disabled: same reasoning as prod above (see comment there).
+    -- dev_window:spawn_tab({ args = { "ssh", "aws-ws2" } })
+    -- local ok2, err2 = pcall(function()
+    --   dev_window:spawn_tab({ domain = { DomainName = "SSHMUX:aws-ws" } })
+    -- end)
+    -- if not ok2 then
+    --   wezterm.log_warn("Failed to spawn SSHMUX:aws-ws tab in dev: " .. tostring(err2))
+    -- end
 
     -- Set active workspace
     mux.set_active_workspace("dev")
@@ -105,12 +110,14 @@ function M.setup_workspaces(env_info)
       workspace = "depot"
     })
     depot_window:spawn_tab({ args = { "ssh", "govardha@imac-depot" } })
-    local ok, err = pcall(function()
-      depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } })
-    end)
-    if not ok then
-      wezterm.log_warn("Failed to spawn SSHMUX:imac-depot tab: " .. tostring(err))
-    end
+    -- Disabled: not on one consistent wezterm nightly build across every
+    -- box yet, so wezterm-native SSHMUX multiplexing is unreliable right now.
+    -- local ok, err = pcall(function()
+    --   depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } })
+    -- end)
+    -- if not ok then
+    --   wezterm.log_warn("Failed to spawn SSHMUX:imac-depot tab: " .. tostring(err))
+    -- end
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
     depot_window:spawn_tab({ args = { "ssh", "what" } })
@@ -135,12 +142,14 @@ function M.setup_workspaces(env_info)
       workspace = "depot"
     })
     depot_window:spawn_tab({ args = { "ssh", "govardha@imac-depot" } })
-    local ok, err = pcall(function()
-      depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } })
-    end)
-    if not ok then
-      wezterm.log_warn("Failed to spawn SSHMUX:imac-depot tab: " .. tostring(err))
-    end
+    -- Disabled: not on one consistent wezterm nightly build across every
+    -- box yet, so wezterm-native SSHMUX multiplexing is unreliable right now.
+    -- local ok, err = pcall(function()
+    --   depot_window:spawn_tab({ domain = { DomainName = "SSHMUX:imac-depot" } })
+    -- end)
+    -- if not ok then
+    --   wezterm.log_warn("Failed to spawn SSHMUX:imac-depot tab: " .. tostring(err))
+    -- end
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot" } })
     depot_window:spawn_tab({ args = { "ssh", "ubuntu@rinku-depot2" } })
     depot_window:spawn_tab({ args = { "ssh", "what" } })

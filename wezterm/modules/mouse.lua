@@ -26,6 +26,17 @@ function M.apply(config)
 			end),
 		},
 	}
+
+	-- Windows only: WezTerm's default middle-click paste uses PrimarySelection,
+	-- which isn't tied to the real Windows clipboard the way it is on macOS.
+	-- Re-add middle-click here, but pull from the actual Clipboard instead.
+	if wezterm.target_triple == "x86_64-pc-windows-msvc" then
+		table.insert(config.mouse_bindings, {
+			event = { Down = { streak = 1, button = "Middle" } },
+			mods = "NONE",
+			action = act.PasteFrom("Clipboard"),
+		})
+	end
 end
 
 return M
