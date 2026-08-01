@@ -5,3 +5,4 @@ source $HOME/3.13/bin/activate
 ## java and filebot works
 export PATH="${PATH}:${HOME}/filebot-portable"
 export PATH="${PATH}:${HOME}/.openjdk/bin"
+export PATH="${PATH}:${HOME}/.local/bin"
