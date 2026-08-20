@@ -1,0 +1,18 @@
+# AWS-devops team approved commands
+# These are auto-approved in addition to common commands
+approved_commands:
+  - matcher: Bash
+    filter: "cdk deploy"
+    description: "Allow CDK deploy"
+  - matcher: Bash
+    filter: "cdk synth"
+    description: "Allow CDK synth"
+  - matcher: Bash
+    filter: "cdk destroy"
+    description: "Allow CDK destroy"
+  - matcher: Bash
+    filter: "aws s3"
+    description: "Allow AWS S3 operations"
+  - matcher: Bash
+    filter: "aws cloudformation"
+    description: "Allow AWS CloudFormation operations"

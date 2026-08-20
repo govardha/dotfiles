@@ -1,0 +1,451 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/prompt-guard.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/global/inject-claude-env.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/detect-vcs.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/bash-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/git-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/git-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/branch-guard.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/audit.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "autoCompactThreshold": 0.5,
+  "statusLine": {
+    "type": "command",
+    "command": "python3 ~/.claude/scripts/statusline.py",
+    "padding": 2
+  },
+  "permissions": {
+    "allowlist": [
+      {
+        "matcher": "Bash",
+        "filter": "git status",
+        "description": "Check git working tree status"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git diff",
+        "description": "View file changes"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git log",
+        "description": "View git commit history"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git show",
+        "description": "Show commit details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git branch",
+        "description": "List or create branches"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git remote",
+        "description": "Manage remote repositories"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git fetch",
+        "description": "Fetch from remote"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git pull",
+        "description": "Fetch and merge remote changes"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git add",
+        "description": "Stage files for commit"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git commit",
+        "description": "Allow git commits"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git checkout",
+        "description": "Switch branches or restore files"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git switch",
+        "description": "Switch to a different branch"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git stash",
+        "description": "Stash changes temporarily"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git blame",
+        "description": "Show file history and authorship"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git grep",
+        "description": "Search git repository"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git ls-files",
+        "description": "List tracked files"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git rev-parse",
+        "description": "Get git object names"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "git push",
+        "description": "Push commits to remote"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh auth",
+        "description": "GitHub authentication"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh repo",
+        "description": "GitHub repository operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh repo clone",
+        "description": "Clone a GitHub repository"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr",
+        "description": "GitHub pull request operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr create",
+        "description": "Create a GitHub pull request"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr list",
+        "description": "List GitHub pull requests"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr view",
+        "description": "View GitHub pull request details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr checkout",
+        "description": "Checkout a GitHub pull request"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr diff",
+        "description": "View GitHub pull request diff"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr comment",
+        "description": "Comment on GitHub pull request"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr review",
+        "description": "Review a GitHub pull request"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh pr ready",
+        "description": "Mark pull request as ready"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh issue",
+        "description": "GitHub issue operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh issue list",
+        "description": "List GitHub issues"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh issue view",
+        "description": "View GitHub issue details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh issue create",
+        "description": "Create a GitHub issue"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh issue comment",
+        "description": "Comment on GitHub issue"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh run",
+        "description": "GitHub Actions run operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh run list",
+        "description": "List GitHub Actions runs"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh run view",
+        "description": "View GitHub Actions run details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh run watch",
+        "description": "Watch GitHub Actions run"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh workflow",
+        "description": "GitHub Actions workflow operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh workflow list",
+        "description": "List GitHub workflows"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh workflow view",
+        "description": "View GitHub workflow details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh release",
+        "description": "GitHub release operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh release list",
+        "description": "List GitHub releases"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh release view",
+        "description": "View GitHub release details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh search",
+        "description": "Search GitHub"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "gh api",
+        "description": "GitHub API operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt auth",
+        "description": "Bitbucket authentication"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt context",
+        "description": "Bitbucket context management"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt repo",
+        "description": "Bitbucket repository operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt repo list",
+        "description": "List Bitbucket repositories"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt repo view",
+        "description": "View Bitbucket repository details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt repo clone",
+        "description": "Clone a Bitbucket repository"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt repo browse",
+        "description": "Browse Bitbucket repository"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt pr",
+        "description": "Bitbucket pull request operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt pr list",
+        "description": "List Bitbucket pull requests"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt pr view",
+        "description": "View Bitbucket pull request details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt pr create",
+        "description": "Create a Bitbucket pull request"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt pr checks",
+        "description": "View Bitbucket PR checks"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt issue",
+        "description": "Bitbucket issue operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt issue list",
+        "description": "List Bitbucket issues"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt issue view",
+        "description": "View Bitbucket issue details"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt issue create",
+        "description": "Create a Bitbucket issue"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt issue comment",
+        "description": "Comment on Bitbucket issue"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt issue status",
+        "description": "Check Bitbucket issue status"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt issue attachment",
+        "description": "Manage Bitbucket issue attachments"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt branch",
+        "description": "Bitbucket branch operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt branch list",
+        "description": "List Bitbucket branches"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt branch create",
+        "description": "Create a Bitbucket branch"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt perms",
+        "description": "Bitbucket permissions operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt pipeline",
+        "description": "Bitbucket pipeline operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt pipeline run",
+        "description": "Run Bitbucket pipeline"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt status",
+        "description": "Bitbucket status operations"
+      },
+      {
+        "matcher": "Bash",
+        "filter": "bkt api",
+        "description": "Bitbucket API operations"
+      }
+    ]
+  }
+}

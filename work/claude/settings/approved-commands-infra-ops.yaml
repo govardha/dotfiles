@@ -1,0 +1,15 @@
+# Infra-ops team approved commands
+# These are auto-approved in addition to common commands
+approved_commands:
+  - matcher: Bash
+    filter: "cdk deploy"
+    description: "Allow CDK deploy"
+  - matcher: Bash
+    filter: "cdk synth"
+    description: "Allow CDK synth"
+  - matcher: Bash
+    filter: "aws ec2"
+    description: "Allow AWS EC2 operations"
+  - matcher: Bash
+    filter: "kubectl"
+    description: "Allow kubectl operations"

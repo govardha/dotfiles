@@ -1,0 +1,15 @@
+# K8s-devops team approved commands
+# These are auto-approved in addition to common commands
+approved_commands:
+  - matcher: Bash
+    filter: "kubectl apply"
+    description: "Allow kubectl apply"
+  - matcher: Bash
+    filter: "kubectl delete"
+    description: "Allow kubectl delete"
+  - matcher: Bash
+    filter: "kubectl rollout"
+    description: "Allow kubectl rollout"
+  - matcher: Bash
+    filter: "helm"
+    description: "Allow helm operations"

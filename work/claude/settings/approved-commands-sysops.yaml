@@ -1,0 +1,9 @@
+# Sysops team approved commands
+# These are auto-approved in addition to common commands
+approved_commands:
+  - matcher: Bash
+    filter: "kubectl apply"
+    description: "Allow kubectl apply"
+  - matcher: Bash
+    filter: "kubectl delete"
+    description: "Allow kubectl delete"
