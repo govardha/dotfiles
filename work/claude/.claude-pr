@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# PR creation wrapper with automatic Claude Code attribution
+#
+# Usage:
+#   .claude-pr [bkt|gh] [pr create args...]
+#
+# Examples:
+#   .claude-pr bkt --title "Fix bug" --target main
+#   .claude-pr gh --title "Add feature" --target main
+#   .claude-pr --title "Update docs"        # auto-detect tool
+#
+# If no --description/--body provided, footer is added automatically.
+
+set -euo pipefail
+
+FOOTER="🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+
+# Determine PR tool (prefer bkt if available, fall back to gh)
+TOOL="gh"
+if command -v bkt &>/dev/null; then
+  TOOL="bkt"
+fi
+
+# Allow explicit tool selection as first argument
+if [[ "${1:-}" =~ ^(bkt|gh)$ ]]; then
+  TOOL="$1"
+  shift
+fi
+
+# Description flag varies by tool
+DESC_FLAG="--description"
+[[ "$TOOL" == "gh" ]] && DESC_FLAG="--body"
+
+# If user didn't provide a description, add footer automatically
+if ! [[ "$*" =~ (--description|--body) ]]; then
+  set -- "$@" "$DESC_FLAG" "$FOOTER"
+fi
+
+# Execute PR creation
+exec "$TOOL" pr create "$@"

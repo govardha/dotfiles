@@ -1,0 +1,71 @@
+#!/bin/bash
+set -euo pipefail
+
+# Source secrets for BKT_HOST and BKT_TOKEN
+SECRETS_FILE="$HOME/.config/shell/secrets"
+if [[ ! -f "$SECRETS_FILE" ]]; then
+  cat >&2 << 'ERRORMSG'
+❌ ERROR: bkt requires ~/.config/shell/secrets
+
+BKT_HOST and BKT_TOKEN are not set. bkt cannot authenticate without them.
+
+Create ~/.config/shell/secrets with:
+
+  export BKT_HOST="https://devtools.miamiholdings.corp/bitbucket"
+  export BKT_TOKEN="your-personal-access-token"
+
+Then source it in your shell:
+  source ~/.config/shell/secrets
+
+Or add this to your ~/.bashrc or ~/.zshrc:
+  if [[ -f ~/.config/shell/secrets ]]; then
+    source ~/.config/shell/secrets
+  fi
+
+To get your BKT_TOKEN:
+  1. Go to Bitbucket Settings → Personal Access Tokens
+  2. Create a new token with scopes: repository, pullrequest:read, pullrequest:write
+  3. Copy the token and add it to ~/.config/shell/secrets
+
+ERRORMSG
+  exit 1
+fi
+
+source "$SECRETS_FILE"
+
+# Verify BKT_HOST and BKT_TOKEN are set
+if [[ -z "${BKT_HOST:-}" ]] || [[ -z "${BKT_TOKEN:-}" ]]; then
+  cat >&2 << 'ERRORMSG'
+❌ ERROR: BKT_HOST or BKT_TOKEN not set in ~/.config/shell/secrets
+
+Make sure your ~/.config/shell/secrets contains:
+
+  export BKT_HOST="https://devtools.miamiholdings.corp/bitbucket"
+  export BKT_TOKEN="your-personal-access-token"
+
+ERRORMSG
+  exit 1
+fi
+
+# Commands that need project/repo context
+REPO_COMMANDS="pr repo branch webhook perms pipeline"
+
+SUBCMD="${1:-}"
+NEEDS_CONTEXT=false
+for cmd in $REPO_COMMANDS; do
+  if [[ "$SUBCMD" == "$cmd" ]]; then
+    NEEDS_CONTEXT=true
+    break
+  fi
+done
+
+if $NEEDS_CONTEXT; then
+  REMOTE=$(git remote get-url origin 2>/dev/null)
+  if [[ "$REMOTE" == *"/scm/"* ]]; then
+    PROJECT=$(echo "$REMOTE" | sed 's|.*/scm/\([^/]*\)/.*|\1|')
+    REPO=$(echo "$REMOTE" | sed 's|.*/\([^/]*\)\.git|\1|')
+    exec /apps/ops/bin/bkt "$@" --project "$PROJECT" --repo "$REPO"
+  fi
+fi
+
+exec /apps/ops/bin/bkt "$@"

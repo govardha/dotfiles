@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/write-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/yaml-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/cdk-python-guard.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+
