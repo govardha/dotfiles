@@ -20,7 +20,7 @@ function M.apply(config)
       "#f7768e", -- red
       "#9ece6a", -- green
       "#e0af68", -- yellow
-      "#7aa2f7", -- blue
+      "#9ab8ff", -- blue (lightened from #7aa2f7 for readability against dark navy bg)
       "#bb9af7", -- magenta
       "#7dcfff", -- cyan
       "#a9b1d6", -- white
@@ -30,7 +30,7 @@ function M.apply(config)
       "#f7768e", -- bright red
       "#9ece6a", -- bright green
       "#e0af68", -- bright yellow
-      "#7aa2f7", -- bright blue
+      "#b3caff", -- bright blue (lightened from #7aa2f7 for readability against dark navy bg)
       "#bb9af7", -- bright magenta
       "#7dcfff", -- bright cyan
       "#c0caf5", -- bright white
@@ -134,7 +134,7 @@ function M.apply(config)
   config.term = "xterm-256color"
   config.default_cursor_style = "BlinkingBar"
 
-  config.text_min_contrast_ratio = 4.5 -- Standard accessibility ratio
+  config.text_min_contrast_ratio = 7.0 -- Bumped from 4.5 (AA) to 7.0 (AAA) — blue text on the navy bg was hard to read
 
   -- Window frame configuration
   local is_linux = wezterm.target_triple:match("linux") ~= nil
