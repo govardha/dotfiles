@@ -47,6 +47,32 @@ export NVM_DIR="${HOME}/.nvm"
 [[ -s "${NVM_DIR}/nvm.sh" ]] && source "${NVM_DIR}/nvm.sh"
 [[ -s "${NVM_DIR}/bash_completion" ]] && source "${NVM_DIR}/bash_completion"
 
+# konf-go (kubeconfig manager: https://github.com/SimonTheLeg/konf-go)
+# Binary is `konf-go` (on PATH via ~/.local/bin); the shellwrapper installs a
+# `konf` function that sets $KUBECONFIG in the CURRENT shell (no subshell).
+if command -v konf-go &>/dev/null; then
+  source <(konf-go shellwrapper bash)
+  source <(konf-go completion bash) 2>/dev/null || true
+  alias kctx='konf set'
+fi
+
+# kubeswitch (namespace/context switcher: https://github.com/danielfoehrKn/kubeswitch)
+# `switcher` binary on PATH + switch.sh defines the `switch` function (sets
+# $KUBECONFIG per-shell). Used mainly for `switch ns` namespace switching;
+# coexists with konf-go (konf = cluster, switch ns = namespace).
+if command -v switcher &>/dev/null && [[ -f "${HOME}/.local/share/kubeswitch/switch.sh" ]]; then
+  source "${HOME}/.local/share/kubeswitch/switch.sh"
+  source <(switch completion bash) 2>/dev/null || true
+fi
+
+# kubectl shortcut + completion
+if command -v kubectl &>/dev/null; then
+  alias k='kubectl'
+  source <(kubectl completion bash) 2>/dev/null || true
+  # make `k` inherit kubectl completion
+  complete -o default -F __start_kubectl k 2>/dev/null || true
+fi
+
 # AWS completer
 if command -v aws_completer &>/dev/null; then
   complete -C "$(command -v aws_completer)" aws

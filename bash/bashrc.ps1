@@ -33,11 +33,20 @@ ps1_pyenv() {
   fi
 }
 
-# --- Kubernetes Context Display ---
+# --- Kubernetes Context + Namespace Display ---
+# Shows ' ⎈ <context>/<namespace>' for the cluster the shell is pointed at.
+# konf-go / kubeswitch expose the active cluster per-shell via $KUBECONFIG, so
+# the whole segment is gated on $KUBECONFIG being set: unset it and the segment
+# disappears entirely. Namespace defaults to 'default' when none is set.
 ps1_kube() {
-  if command -v kube_ps1 &>/dev/null && [ ! -z "$(kube_ps1)" ]; then
-    echo " $(kube_ps1)"
-  fi
+  [[ -n "${KUBECONFIG:-}" ]] || return 0
+  command -v kubectl &>/dev/null || return 0
+  local ctx ns
+  ctx=$(kubectl config current-context 2>/dev/null) || return 0
+  [[ -n "${ctx}" ]] || return 0
+  ns=$(kubectl config view --minify -o jsonpath='{..namespace}' 2>/dev/null)
+  [[ -n "${ns}" ]] || ns="default"
+  echo " ⎈ ${ctx}/${ns}"
 }
 
 # --- AWS Profile Display ---
