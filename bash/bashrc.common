@@ -47,6 +47,15 @@ export NVM_DIR="${HOME}/.nvm"
 [[ -s "${NVM_DIR}/nvm.sh" ]] && source "${NVM_DIR}/nvm.sh"
 [[ -s "${NVM_DIR}/bash_completion" ]] && source "${NVM_DIR}/bash_completion"
 
+# konf-go (kubeconfig manager: https://github.com/SimonTheLeg/konf-go)
+# Binary is `konf-go` (on PATH via ~/.local/bin); the shellwrapper installs a
+# `konf` function that sets $KUBECONFIG in the CURRENT shell (no subshell).
+if command -v konf-go &>/dev/null; then
+  source <(konf-go shellwrapper bash)
+  source <(konf-go completion bash) 2>/dev/null || true
+  alias kctx='konf set'
+fi
+
 # AWS completer
 if command -v aws_completer &>/dev/null; then
   complete -C "$(command -v aws_completer)" aws

@@ -34,10 +34,14 @@ ps1_pyenv() {
 }
 
 # --- Kubernetes Context Display ---
+# Self-contained: reads the current context from whatever $KUBECONFIG points at
+# (this is how konf-go exposes the active cluster per-shell). Prints nothing
+# when no context/cluster is set, so the prompt stays uncluttered.
 ps1_kube() {
-  if command -v kube_ps1 &>/dev/null && [ ! -z "$(kube_ps1)" ]; then
-    echo " $(kube_ps1)"
-  fi
+  command -v kubectl &>/dev/null || return 0
+  local ctx
+  ctx=$(kubectl config current-context 2>/dev/null) || return 0
+  [[ -n "${ctx}" ]] && echo " ⎈ ${ctx}"
 }
 
 # --- AWS Profile Display ---
